@@ -1,0 +1,32 @@
+.recent-questionnaires {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+    display: block;
+    margin-bottom: 16px;
+    padding-left: 24px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recent-item {
+    padding: 8px 24px !important;
+}
+
+.recent-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.recent-item a {
+    display: block;
+    width: 100%;
+    color: rgba(0, 0, 0, 0.88);
+}
+
+.recent-item .ant-typography {
+    max-width: 100%;
+} 

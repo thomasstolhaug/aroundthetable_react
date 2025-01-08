@@ -1,0 +1,26 @@
+.answer-questionnaire-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+  background-color: #f5f5f5;
+}
+
+.questionnaire-card {
+  width: 800px;
+  max-width: 90%;
+  margin-top: 24px;
+}
+
+.questionnaire-card .ant-typography {
+  margin-bottom: 24px;
+}
+
+.questionnaire-card .ant-form-item {
+  margin-bottom: 32px;
+}
+
+.questionnaire-card .ant-form-item-label {
+  font-weight: 500;
+} 

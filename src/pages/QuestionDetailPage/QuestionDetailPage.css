@@ -1,0 +1,62 @@
+.question-detail {
+    margin-top: 24px;
+}
+
+.question-detail .ant-descriptions-item {
+    padding-bottom: 16px;
+}
+
+.question-detail .ant-descriptions-item:last-child {
+    padding-bottom: 0;
+}
+
+.answers-section {
+    margin-top: 24px;
+}
+
+.answers-section .ant-table-wrapper {
+    margin-top: 16px;
+}
+
+.answers-section .ant-typography {
+    margin-bottom: 0;
+}
+
+/* .page-container {
+    padding: 16px;
+} */
+
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-title {
+    margin-top: 16px !important;
+    margin-bottom: 0 !important;
+}
+
+.section-card {
+    margin-bottom: 24px;
+}
+
+.section-card:last-child {
+    margin-bottom: 0;
+}
+
+.summary-section {
+    margin-bottom: 24px;
+}
+
+.summary-section .ant-spin {
+    margin: 20px 0;
+    display: block;
+    text-align: center;
+}
+
+.categories-section {
+    margin-bottom: 24px;
+}
+
+.categories-section .ant-table-wrapper {
+    margin-top: 16px;
+}

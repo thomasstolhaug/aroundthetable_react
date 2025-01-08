@@ -1,0 +1,193 @@
+.discussion-item {
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	margin-bottom: 12px !important;
+	padding: 16px 24px !important;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.discussion-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.discussion-content {
+	display: flex;
+	width: 100%;
+	gap: 32px;
+	position: relative;
+}
+
+.discussion-main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.discussion-title {
+	margin-bottom: 4px !important;
+}
+
+.discussion-description {
+	color: rgba(0, 0, 0, 0.65);
+	margin-bottom: 0 !important;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.discussion-meta {
+	width: 250px;
+	flex-shrink: 0;
+	border-left: 1px solid #f0f0f0;
+	padding-left: 20px;
+	padding-top: 32px;
+}
+
+.meta-item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	text-align: right;
+}
+
+.meta-label {
+	color: rgba(0, 0, 0, 0.45);
+	font-size: 12px;
+	text-align: right;
+}
+
+.view-button {
+	width: 100%;
+	height: 32px;
+	color: rgba(0, 0, 0, 0.88);
+	border: 1px solid #d9d9d9;
+}
+
+.view-button:hover {
+	color: #1677ff;
+	border-color: #1677ff;
+}
+
+.meta-dates {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.discussion-content {
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.discussion-meta {
+		width: 100%;
+		border-left: none;
+		border-top: 1px solid #f0f0f0;
+		padding-left: 0;
+		padding-top: 24px;
+	}
+
+	.discussion-status {
+		position: static;
+		margin-bottom: 16px;
+	}
+
+	.meta-dates {
+		gap: 24px;
+	}
+
+	.meta-item {
+		text-align: left;
+	}
+
+	.meta-label {
+		text-align: left;
+	}
+}
+
+/* Add new styles for status positioning */
+.discussion-status {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.discussion-status .ant-tag {
+	font-weight: 500;
+	padding: 1px 10px;
+	font-size: 12px;
+	background: transparent;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.discussion-responses {
+	margin-top: auto;  /* This pushes it to the bottom */
+	padding-top: 12px;
+}
+
+.responses-count {
+	color: rgba(0, 0, 0, 0.45);
+	font-size: 13px;
+}
+
+.page-header {
+	margin-bottom: 24px;
+}
+
+
+.page-header-content {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+}
+
+.page-header .ant-breadcrumb {
+	font-size: 14px;
+	margin-bottom: 8px;
+}
+
+.page-header .ant-breadcrumb a {
+	color: rgba(0, 0, 0, 0.45);
+}
+
+.page-header .ant-breadcrumb a:hover {
+	color: #1677ff;
+}
+
+.page-header .ant-typography {
+	margin-bottom: 0 !important;
+	line-height: 1.1 !important;
+}
+
+.page-header .ant-btn {
+	height: 40px;
+	padding: 6.5px 16px;
+	display: inline-flex;
+	align-items: center;
+}
+
+.discussions-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 32px;
+}
+
+.discussions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 24px;
+	margin-top: 32px;
+}
+
+.loading-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 200px;
+} 
