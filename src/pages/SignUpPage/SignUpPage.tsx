@@ -1,6 +1,15 @@
 // src/pages/SignUpPage.tsx
 import React, { useState } from "react";
-import { Card, Form, Input, Button, Typography, message, Space } from "antd";
+import {
+	Card,
+	Form,
+	Input,
+	Button,
+	Typography,
+	message,
+	Space,
+	Tooltip,
+} from "antd";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
@@ -17,7 +26,7 @@ const SignUpPage: React.FC = () => {
 		setLoading(true);
 		try {
 			// Make a POST request to your Django endpoint
-			const res = await axios.post("/api/users/create_user", {
+			const res = await axios.post("/api/users/create_user_disabled", {
 				email: values.email.trim(),
 				password: values.password.trim(),
 				first_name: values.first_name.trim(),
@@ -124,9 +133,17 @@ const SignUpPage: React.FC = () => {
 
 					<Form.Item>
 						<Space direction="vertical" style={{ width: "100%" }}>
-							<Button type="primary" htmlType="submit" loading={loading} block>
-								Create Account
-							</Button>
+							<Tooltip title="Sign up is currently invite-only">
+								<Button
+									type="primary"
+									htmlType="submit"
+									loading={loading}
+									block
+									disabled
+								>
+									Create Account
+								</Button>
+							</Tooltip>
 							<Link to="/login">
 								<Button block>Back to Login</Button>
 							</Link>
