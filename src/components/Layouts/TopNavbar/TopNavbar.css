@@ -1,14 +1,13 @@
 /* Desktop Navbar */
 .desktop-navbar {
 	height: 60px;
-	background-color: #333;
-	background: #f5f5f5;
+	background: #ffffff;
 	height: 60px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 0 20px;
-	border-bottom: 1px solid #e5e5e5;
+	/* border-bottom: 1px solid #e5e5e5; */
 }
 
 .desktop-navbar-left {
@@ -34,19 +33,19 @@
 .divider {
 	width: 1px;
 	height: 24px;
-	background: #e5e5e5;
+	
 	margin: 0 8px;
 }
 
 /* Mobile Navbar */
 .mobile-navbar {
-    background: #f5f5f5;
+	background: #ffffff;
 	height: 60px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 0 20px;
-	border-bottom: 1px solid #e5e5e5;
+
 }
 
 .mobile-navbar-left {
@@ -83,13 +82,13 @@
 
 
 /* Responsive */
-@media (min-width: 768px) {
+@media (min-width: 1050px) {
 	.mobile-navbar {
 		display: none;
 	}
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1049px) {
 	.desktop-navbar {
 		display: none;
 	}

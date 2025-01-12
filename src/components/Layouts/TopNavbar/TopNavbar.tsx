@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useUser } from "../../../context/UserContext";
+import logo from "../../../assets/logo_color_st.svg";
 
 const MainNavbar: React.FC = () => {
 	const [hamurgerMenuOpen, setHamurgerMenuOpen] = useState(false);
@@ -25,7 +26,16 @@ const MainNavbar: React.FC = () => {
 	return (
 		<>
 			<div className="desktop-navbar">
-				<div className="desktop-navbar-left">AROUND THE TABLE (BETA)</div>
+				<div className="desktop-navbar-left">
+					<Link to="/">
+						<img
+							src={logo}
+							alt="Around The Table Logo"
+							style={{ height: "28px" }}
+						/>
+					</Link>
+				</div>
+
 				<div className="desktop-navbar-right">
 					<div className="desktop-navbar-right-items">
 						<div className="divider" />
@@ -85,7 +95,15 @@ const MainNavbar: React.FC = () => {
 
 			{/* Mobile Navbar */}
 			<div className="mobile-navbar">
-				<div className="mobile-navbar-left">AROUND THE TABLE</div>
+				<div className="mobile-navbar-left">
+					<Link to="/">
+						<img
+							src={logo}
+							alt="Around The Table Logo"
+							style={{ height: "28px" }}
+						/>
+					</Link>
+				</div>
 				<div className="mobile-navbar-right">
 					<Button
 						type="text"
@@ -105,7 +123,13 @@ const MainNavbar: React.FC = () => {
 				onClose={handleHamurgerMenuClose}
 				title={
 					<div style={{ display: "flex", justifyContent: "space-between" }}>
-						<span>AROUND THE TABLE</span>
+						<Link to="/">
+							<img
+								src={logo}
+								alt="Around The Table Logo"
+								style={{ height: "28px" }}
+							/>
+						</Link>
 						<CloseOutlined
 							style={{ fontSize: 18, cursor: "pointer" }}
 							onClick={handleHamurgerMenuClose}
@@ -114,17 +138,29 @@ const MainNavbar: React.FC = () => {
 				}
 			>
 				<div className="mobile-drawer-content">
-					<Link to="/" className="button-no-underline">
+					<Link
+						to="/"
+						className="button-no-underline"
+						onClick={handleHamurgerMenuClose}
+					>
 						<Typography.Text strong style={{ fontSize: 16 }}>
 							Home
 						</Typography.Text>
 					</Link>
-					<Link to="/" className="button-no-underline">
+					<Link
+						to="/"
+						className="button-no-underline"
+						onClick={handleHamurgerMenuClose}
+					>
 						<Typography.Text strong disabled style={{ fontSize: 16 }}>
 							Use cases
 						</Typography.Text>
 					</Link>
-					<Link to="/" className="button-no-underline">
+					<Link
+						to="/"
+						className="button-no-underline"
+						onClick={handleHamurgerMenuClose}
+					>
 						<Typography.Text strong disabled style={{ fontSize: 16 }}>
 							Pricing
 						</Typography.Text>
@@ -133,12 +169,12 @@ const MainNavbar: React.FC = () => {
 					<div className="drawer-divider" />
 
 					<div className="drawer-footer">
-						<Link to="/login">
+						<Link to="/login" onClick={handleHamurgerMenuClose}>
 							<Button type="default" block>
 								Login
 							</Button>
 						</Link>
-						<Link to="/signup">
+						<Link to="/signup" onClick={handleHamurgerMenuClose}>
 							<Tooltip title="Sign ups are currently invite only">
 								<Button type="primary" disabled block>
 									Sign Up
