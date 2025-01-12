@@ -48,8 +48,10 @@ const DiscussionsPage: React.FC = () => {
 	useEffect(() => {
 		const fetchQuestionnaires = async () => {
 			try {
-				const response = await axios.get("/api/questionnaires/");
-				setQuestionnaires(response.data.results);
+				const response = await axios.get(
+					"/api/questionnaires/get_questionnaires_all"
+				);
+				setQuestionnaires(response.data.questionnaires);
 			} catch (error) {
 				console.error("Error fetching questionnaires:", error);
 			} finally {
@@ -63,7 +65,7 @@ const DiscussionsPage: React.FC = () => {
 	const handleCreateDiscussion = async (values: CreateDiscussionValues) => {
 		try {
 			await axios.post(
-				"/api/create_questionnaire",
+				"/api/questionnaires/create_questionnaire",
 				{
 					title: values.title,
 					description: values.description,
@@ -75,8 +77,10 @@ const DiscussionsPage: React.FC = () => {
 				}
 			);
 
-			const updatedResponse = await axios.get("/api/questionnaires/");
-			setQuestionnaires(updatedResponse.data.results);
+			const updatedResponse = await axios.get(
+				"/api/questionnaires/get_questionnaires_all"
+			);
+			setQuestionnaires(updatedResponse.data.questionnaires);
 
 			setIsModalOpen(false);
 			form.resetFields();

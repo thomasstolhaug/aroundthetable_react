@@ -22,6 +22,7 @@ import {
 	DeleteOutlined,
 	ShareAltOutlined,
 } from "@ant-design/icons";
+import { QRCodeSVG } from "qrcode.react";
 
 interface QuestionnaireResponse {
 	questionnaire: {
@@ -84,7 +85,7 @@ const DiscussionDetailPage: React.FC = () => {
 				const data = { questionnaire_id: id };
 
 				const response = await axios.post<QuestionnaireResponse>(
-					"/api/get_questionnaire_by_id",
+					"/api/questionnaires/get_questionnaire_by_id",
 					data,
 					{
 						headers: { "X-CSRFToken": csrfToken },
@@ -109,17 +110,15 @@ const DiscussionDetailPage: React.FC = () => {
 	useEffect(() => {
 		const fetchQuestions = async () => {
 			try {
-				const response = await axios.get<QuestionResponse>(
-					"/api/get_question_all",
+				const response = await axios.post<QuestionResponse>(
+					"/api/questionnaires/get_questionnaire_questions",
+					{ questionnaire_id: id },
 					{
 						headers: { "X-CSRFToken": csrfToken },
 						withCredentials: true,
 					}
 				);
-				const filteredQuestions = response.data.questions.filter(
-					(q) => q.questionnaire === id
-				);
-				setQuestions(filteredQuestions);
+				setQuestions(response.data.questions);
 			} catch (error) {
 				console.error("Error fetching questions:", error);
 			}
@@ -128,7 +127,7 @@ const DiscussionDetailPage: React.FC = () => {
 		if (id) {
 			fetchQuestions();
 		}
-	}, [id]);
+	}, [id, csrfToken]);
 
 	const fetchShareInfo = async () => {
 		if (!id) return;
@@ -156,7 +155,7 @@ const DiscussionDetailPage: React.FC = () => {
 	const handleCreateQuestion = async (values: any) => {
 		try {
 			await axios.post(
-				"/api/create_question",
+				"/api/questionnaires/create_question",
 				{
 					questionnaire_id: id,
 					text: values.question,
@@ -170,17 +169,21 @@ const DiscussionDetailPage: React.FC = () => {
 			);
 
 			// Refresh questions list
-			const response = await axios.get<QuestionResponse>(
-				"/api/get_question_all",
+			const response = await axios.post<QuestionResponse>(
+				`/api/questionnaires/get_questionnaire_questions`,
+				{
+					questionnaire_id: id,
+					text: values.question,
+					answer_character_limit: values.answer_character_limit,
+					required: values.required || false,
+				},
 				{
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				}
 			);
-			const filteredQuestions = response.data.questions.filter(
-				(q) => q.questionnaire === id
-			);
-			setQuestions(filteredQuestions);
+
+			setQuestions(response.data.questions);
 
 			setIsModalVisible(false);
 			form.resetFields();
@@ -192,7 +195,7 @@ const DiscussionDetailPage: React.FC = () => {
 	const handleDeleteQuestion = async (questionId: string) => {
 		try {
 			await axios.post(
-				"/api/delete_question",
+				"/api/questionnaires/delete_question",
 				{
 					question_id: questionId,
 				},
@@ -203,7 +206,8 @@ const DiscussionDetailPage: React.FC = () => {
 			);
 
 			// Remove the deleted question from state
-			setQuestions(questions.filter((q) => q.id !== questionId));
+			const updatedQuestions = questions.filter((q) => q.id !== questionId);
+			setQuestions(updatedQuestions);
 		} catch (error) {
 			console.error("Error deleting question:", error);
 		}
@@ -231,7 +235,7 @@ const DiscussionDetailPage: React.FC = () => {
 	const handleDeleteQuestionnaire = async () => {
 		try {
 			await axios.post(
-				"/api/delete_questionnaire",
+				"/api/questionnaires/delete_questionnaire",
 				{ questionnaire_id: id },
 				{
 					headers: { "X-CSRFToken": csrfToken },
@@ -395,6 +399,7 @@ const DiscussionDetailPage: React.FC = () => {
 											gap: "8px",
 											justifyContent: "right",
 											marginRight: "16px",
+											alignItems: "center",
 										}}
 									>
 										<Typography.Text type="secondary">
@@ -403,6 +408,11 @@ const DiscussionDetailPage: React.FC = () => {
 										<Typography.Text copyable>
 											{shareInfo.access_code}
 										</Typography.Text>
+										<QRCodeSVG
+											value={`${window.location.origin}/answer?code=${shareInfo.access_code}`}
+											size={100}
+											style={{ marginLeft: "8px" }}
+										/>
 									</div>
 									<div
 										style={{

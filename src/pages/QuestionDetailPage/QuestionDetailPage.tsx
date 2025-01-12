@@ -89,7 +89,7 @@ const QuestionDetailPage: React.FC = () => {
 				if (!csrfToken) return;
 
 				const response = await axios.post(
-					"/api/get_question_by_id",
+					"/api/questionnaires/get_question_by_id",
 					{ question_id: questionId },
 					{
 						headers: { "X-CSRFToken": csrfToken },
@@ -116,14 +116,15 @@ const QuestionDetailPage: React.FC = () => {
 			setLoadingAnswers(true);
 
 			try {
-				const response = await axios.get("/api/get_answer_all", {
-					headers: { "X-CSRFToken": csrfToken },
-					withCredentials: true,
-				});
-				const questionAnswers = response.data.answers.filter(
-					(a: Answer) => a.question === questionId
+				const response = await axios.post(
+					"/api/questionnaires/get_answers_to_question",
+					{ question_id: questionId },
+					{
+						headers: { "X-CSRFToken": csrfToken },
+						withCredentials: true,
+					}
 				);
-				setAnswers(questionAnswers);
+				setAnswers(response.data.answers);
 			} catch (error) {
 				console.error("Error fetching answers:", error);
 			} finally {
@@ -191,7 +192,7 @@ const QuestionDetailPage: React.FC = () => {
 
 			try {
 				const response = await axios.post(
-					"/api/get_questionnaire_by_id",
+					"/api/questionnaires/get_questionnaire_by_id",
 					{ questionnaire_id: question.questionnaire },
 					{
 						headers: { "X-CSRFToken": csrfToken },
@@ -212,7 +213,7 @@ const QuestionDetailPage: React.FC = () => {
 	const handleDeleteAnswer = async (answerId: string) => {
 		try {
 			await axios.post(
-				"/api/delete_answer",
+				"/api/questionnaires/delete_answer",
 				{ answer_id: answerId },
 				{
 					headers: { "X-CSRFToken": csrfToken },
@@ -322,7 +323,7 @@ const QuestionDetailPage: React.FC = () => {
 			const values = await form.validateFields();
 
 			await axios.post(
-				"/api/create_answer",
+				"/api/questionnaires/create_answer",
 				{
 					question_id: questionId,
 					text: values.answer,
@@ -334,10 +335,14 @@ const QuestionDetailPage: React.FC = () => {
 			);
 
 			// Refresh the answers list
-			const response = await axios.get("/api/get_answer_all", {
-				headers: { "X-CSRFToken": csrfToken },
-				withCredentials: true,
-			});
+			const response = await axios.post(
+				"/api/questionnaires/get_answers_to_question",
+				{ question_id: questionId },
+				{
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				}
+			);
 			const questionAnswers = response.data.answers.filter(
 				(a: Answer) => a.question === questionId
 			);
