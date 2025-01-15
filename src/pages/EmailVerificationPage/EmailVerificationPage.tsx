@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Typography, Button, message } from "antd";
 import axios from "axios";
+import { useCsrf } from "../../context/CsrfProvider";
 
 const { Title, Paragraph } = Typography;
 
 const EmailVerificationPage: React.FC = () => {
+	const { csrfToken } = useCsrf();
 	const { uidb64, token } = useParams();
 	const navigate = useNavigate();
 	const [verifying, setVerifying] = useState(true);
@@ -14,11 +16,16 @@ const EmailVerificationPage: React.FC = () => {
 	useEffect(() => {
 		const verifyEmail = async () => {
 			try {
+				const data = {
+					uidb64,
+					token,
+				};
 				const response = await axios.post(
 					"/api/users/finalize-password-reset/",
+					data,
 					{
-						uidb64,
-						token,
+						headers: { "X-CSRFToken": csrfToken },
+						withCredentials: true,
 					}
 				);
 
