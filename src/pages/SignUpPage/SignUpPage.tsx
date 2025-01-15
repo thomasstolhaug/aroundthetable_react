@@ -1,6 +1,6 @@
 // src/pages/SignUpPage.tsx
 import React, { useState } from "react";
-import { Card, Form, Input, Button, Typography, message } from "antd";
+import { Card, Form, Input, Button, Typography, message, Tooltip } from "antd";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useCsrf } from "../../context/CsrfProvider";
@@ -168,18 +168,21 @@ const SignUpPage: React.FC = () => {
 						</Form.Item>
 
 						<Form.Item style={{ marginTop: 24 }}>
-							<Button
-								type="primary"
-								htmlType="submit"
-								loading={loading}
-								block
-								style={{
-									backgroundColor: "#3f65f3",
-									borderColor: "#3f65f3",
-								}}
-							>
-								Create Account
-							</Button>
+							<Tooltip title="Sign ups are invite-only at this time">
+								<Button
+									type="primary"
+									htmlType="submit"
+									loading={loading}
+									block
+									style={{
+										backgroundColor: "#3f65f3",
+										borderColor: "#3f65f3",
+									}}
+									disabled
+								>
+									Create Account
+								</Button>
+							</Tooltip>
 						</Form.Item>
 					</Form>
 
