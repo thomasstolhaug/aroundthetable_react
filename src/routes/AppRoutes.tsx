@@ -15,6 +15,7 @@ import QuestionDetailPage from "../pages/QuestionDetailPage/QuestionDetailPage";
 import ProfileEditPage from "../pages/ProfileEditPage/ProfileEditPage";
 import AccessDiscussionPage from "../pages/AccessDiscussionPage/AccessDiscussionPage";
 import AnswerQuestionnairePage from "../pages/AnswerQuestionnairePage/AnswerQuestionnairePage";
+import EmailVerificationPage from "../pages/EmailVerificationPage/EmailVerificationPage";
 
 // Components
 import MainAppLayout from "../components/Layouts/MainAppLayout/MainAppLayout";
@@ -61,6 +62,10 @@ function AppRoutes() {
 				<Route path="/about" element={<AboutUs />} />
 				<Route path="/access" element={<AccessDiscussionPage />} />
 				<Route path="/answer" element={<AnswerQuestionnairePage />} />
+				<Route
+					path="/verify-email/:uidb64/:token"
+					element={<EmailVerificationPage />}
+				/>
 
 				<Route path="*" element={<NotFoundPage />} />
 			</Route>
