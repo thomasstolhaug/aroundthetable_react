@@ -1,18 +1,11 @@
 // src/pages/SignUpPage.tsx
 import React, { useState } from "react";
-import {
-	Card,
-	Form,
-	Input,
-	Button,
-	Typography,
-	message,
-	Space,
-	Tooltip,
-} from "antd";
+import { Card, Form, Input, Button, Typography, message } from "antd";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useCsrf } from "../../context/CsrfProvider";
+import NavBar from "../../components/Layouts/TopNavbar/TopNavbar";
+import "./SignUpPage.css";
 
 const SignUpPage: React.FC = () => {
 	const { csrfToken } = useCsrf();
@@ -54,110 +47,150 @@ const SignUpPage: React.FC = () => {
 	};
 
 	return (
-		<div
-			style={{
-				position: "fixed",
-				top: 0,
-				left: 0,
-				right: 0,
-				bottom: 0,
-				display: "flex",
-				justifyContent: "center",
-				alignItems: "center",
-				background: "#f0f2f5",
-			}}
-		>
-			<Card
+		<>
+			<NavBar />
+			<div
 				style={{
-					width: 350,
-					maxWidth: "90%",
-					boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+					position: "fixed",
+					top: 64,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "flex-start",
+					background: "#ffffff",
+					padding: "40px 16px",
+					overflowY: "auto",
 				}}
-				bordered={false}
 			>
-				<Typography.Title level={3}>Sign Up</Typography.Title>
-
-				<Typography.Paragraph>
-					Please fill out the form to create a new account.
-				</Typography.Paragraph>
-
-				<Form layout="vertical" onFinish={onFinish}>
-					<Form.Item
-						label="First Name"
-						name="first_name"
-						rules={[
-							{ required: true, message: "Please enter your first name" },
-						]}
+				<Card
+					style={{
+						width: "100%",
+						maxWidth: "450px",
+						boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+						marginTop: "2vh",
+					}}
+					bordered={false}
+				>
+					<Typography.Title
+						level={3}
+						style={{
+							marginBottom: 24,
+							textAlign: "center",
+						}}
 					>
-						<Input placeholder="e.g. John" />
-					</Form.Item>
+						Welcome to
+						<br /> Around the Table
+					</Typography.Title>
 
-					<Form.Item
-						label="Last Name"
-						name="last_name"
-						rules={[{ required: true, message: "Please enter your last name" }]}
+					<Typography.Paragraph
+						style={{
+							textAlign: "center",
+							marginBottom: 32,
+						}}
 					>
-						<Input placeholder="e.g. Doe" />
-					</Form.Item>
+						Please fill out the form to create a new account.
+					</Typography.Paragraph>
 
-					<Form.Item
-						label="Email"
-						name="email"
-						rules={[
-							{ required: true, message: "Please enter your email" },
-							{ type: "email", message: "Please enter a valid email address" },
-						]}
+					<Form
+						layout="vertical"
+						onFinish={onFinish}
+						autoComplete="off"
+						initialValues={{
+							email: "",
+							password: "",
+							first_name: "",
+							last_name: "",
+						}}
 					>
-						<Input placeholder="e.g. john.doe@example.com" />
-					</Form.Item>
+						<Form.Item
+							label="First Name"
+							name="first_name"
+							rules={[
+								{ required: true, message: "Please enter your first name" },
+							]}
+						>
+							<Input placeholder="e.g. John" />
+						</Form.Item>
 
-					<Form.Item
-						label="Password"
-						name="password"
-						rules={[{ required: true, message: "Please enter your password" }]}
-					>
-						<Input.Password placeholder="••••••" />
-					</Form.Item>
+						<Form.Item
+							label="Last Name"
+							name="last_name"
+							rules={[
+								{ required: true, message: "Please enter your last name" },
+							]}
+						>
+							<Input placeholder="e.g. Doe" />
+						</Form.Item>
 
-					<Form.Item
-						label="Confirm Password"
-						name="confirm_password"
-						dependencies={["password"]}
-						rules={[
-							{ required: true, message: "Please confirm your password" },
-							({ getFieldValue }) => ({
-								validator(_, value) {
-									if (!value || getFieldValue("password") === value) {
-										return Promise.resolve();
-									}
-									return Promise.reject("Passwords do not match!");
+						<Form.Item
+							label="Email"
+							name="email"
+							rules={[
+								{ required: true, message: "Please enter your email" },
+								{
+									type: "email",
+									message: "Please enter a valid email address",
 								},
-							}),
-						]}
-					>
-						<Input.Password placeholder="••••••" />
-					</Form.Item>
+							]}
+						>
+							<Input placeholder="e.g. john.doe@example.com" />
+						</Form.Item>
 
-					<Form.Item>
-						<Space direction="vertical" style={{ width: "100%" }}>
-							<Tooltip title="Sign up is currently invite-only">
-								<Button
-									type="primary"
-									htmlType="submit"
-									loading={loading}
-									block
-								>
-									Create Account
-								</Button>
-							</Tooltip>
-							<Link to="/login">
-								<Button block>Back to Login</Button>
-							</Link>
-						</Space>
-					</Form.Item>
-				</Form>
-			</Card>
-		</div>
+						<Form.Item
+							label="Password"
+							name="password"
+							rules={[
+								{ required: true, message: "Please enter your password" },
+							]}
+						>
+							<Input.Password placeholder="••••••" />
+						</Form.Item>
+
+						<Form.Item
+							label="Confirm Password"
+							name="confirm_password"
+							dependencies={["password"]}
+							rules={[
+								{ required: true, message: "Please confirm your password" },
+								({ getFieldValue }) => ({
+									validator(_, value) {
+										if (!value || getFieldValue("password") === value) {
+											return Promise.resolve();
+										}
+										return Promise.reject("Passwords do not match!");
+									},
+								}),
+							]}
+						>
+							<Input.Password placeholder="••••••" />
+						</Form.Item>
+
+						<Form.Item style={{ marginTop: 24 }}>
+							<Button
+								type="primary"
+								htmlType="submit"
+								loading={loading}
+								block
+								style={{
+									backgroundColor: "#3f65f3",
+									borderColor: "#3f65f3",
+								}}
+							>
+								Create Account
+							</Button>
+						</Form.Item>
+					</Form>
+
+					<Link to="/login">
+						<Button type="text" block style={{ backgroundColor: "#f5f5f5" }}>
+							Already have an account? Log in
+						</Button>
+					</Link>
+				</Card>
+			</div>
+		</>
 	);
 };
 
