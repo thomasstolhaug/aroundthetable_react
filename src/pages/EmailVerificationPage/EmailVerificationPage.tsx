@@ -20,14 +20,10 @@ const EmailVerificationPage: React.FC = () => {
 					uidb64,
 					token,
 				};
-				const response = await axios.post(
-					"/api/users/finalize-password-reset/",
-					data,
-					{
-						headers: { "X-CSRFToken": csrfToken },
-						withCredentials: true,
-					}
-				);
+				const response = await axios.post("/api/users/verify_email/", data, {
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				});
 
 				setVerified(true);
 				message.success(
