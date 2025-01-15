@@ -12,8 +12,10 @@ import {
 } from "antd";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useCsrf } from "../../context/CsrfProvider";
 
 const SignUpPage: React.FC = () => {
+	const { csrfToken } = useCsrf();
 	const [loading, setLoading] = useState(false);
 
 	// Called when the user submits the form
@@ -25,12 +27,17 @@ const SignUpPage: React.FC = () => {
 	}) => {
 		setLoading(true);
 		try {
-			// Make a POST request to your Django endpoint
-			const res = await axios.post("/api/users/create_user", {
+			const userData = {
 				email: values.email.trim(),
 				password: values.password.trim(),
 				first_name: values.first_name.trim(),
 				last_name: values.last_name.trim(),
+			};
+
+			// Make a POST request to your Django endpoint
+			const res = await axios.post("/api/users/create_user", userData, {
+				headers: { "X-CSRFToken": csrfToken },
+				withCredentials: true,
 			});
 
 			message.success(res.data?.message || "User created successfully!");
