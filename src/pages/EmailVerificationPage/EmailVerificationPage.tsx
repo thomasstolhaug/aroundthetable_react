@@ -43,7 +43,7 @@ const EmailVerificationPage: React.FC = () => {
 			setVerifying(false);
 			message.error("Invalid verification link");
 		}
-	}, [uidb64, token]);
+	}, [uidb64, token, csrfToken]);
 
 	return (
 		<div style={containerStyle}>
