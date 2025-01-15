@@ -4,12 +4,15 @@ import { useSearchParams } from "react-router-dom";
 import { Card, Form, Input, Button, Typography, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useCsrf } from "../../context/CsrfProvider";
+import LoadingScreen from "../../components/LoadingScreen/LoadingScreen";
 
 const ResetPasswordPage: React.FC = () => {
 	const [searchParams] = useSearchParams();
 	const uidb64 = searchParams.get("uidb64") || "";
 	const token = searchParams.get("token") || "";
 
+	const { csrfToken, tokenLoaded } = useCsrf();
 	const navigate = useNavigate();
 
 	const [submitting, setSubmitting] = useState(false);
@@ -29,13 +32,22 @@ const ResetPasswordPage: React.FC = () => {
 	}) => {
 		setSubmitting(true);
 		try {
-			// POST to Django: /api/users/forgot_password_confirm
-			const res = await axios.post("/api/users/finalize-password-reset/", {
+			// POST to Django: /api/users/finalize-password-reset/
+			const data = {
 				uidb64,
 				token,
 				new_password: values.new_password,
 				confirm_password: values.confirm_password,
-			});
+			};
+
+			const res = await axios.post(
+				"/api/users/finalize-password-reset/",
+				data,
+				{
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				}
+			);
 
 			message.success(res.data?.message || "Password reset successful!");
 			navigate("/login");
@@ -50,6 +62,11 @@ const ResetPasswordPage: React.FC = () => {
 			setSubmitting(false);
 		}
 	};
+
+	// Wait until the CSRF token is loaded (or show a spinner otherwise)
+	if (!tokenLoaded) {
+		return <LoadingScreen />;
+	}
 
 	return (
 		<div style={containerStyle}>
@@ -75,7 +92,6 @@ const ResetPasswordPage: React.FC = () => {
 						dependencies={["new_password"]}
 						rules={[
 							{ required: true, message: "Please confirm your new password" },
-							// Basic check to match password
 							({ getFieldValue }) => ({
 								validator(_, value) {
 									if (!value || getFieldValue("new_password") === value) {

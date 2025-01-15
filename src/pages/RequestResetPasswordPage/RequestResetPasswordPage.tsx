@@ -6,15 +6,20 @@ import { useCsrf } from "../../context/CsrfProvider";
 axios.defaults.withCredentials = true;
 
 const ResetPassword: React.FC = () => {
-	const { tokenLoaded } = useCsrf();
+	const { csrfToken, tokenLoaded } = useCsrf();
 	const [submitting, setSubmitting] = useState(false);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 
 	const onFinish = async (values: { email: string }) => {
 		try {
 			setSubmitting(true);
-			await axios.post("/api/users/request-password-mail/", {
+
+			const data = {
 				email: values.email,
+			};
+			await axios.post("/api/users/request-password-mail/", data, {
+				headers: { "X-CSRFToken": csrfToken },
+				withCredentials: true,
 			});
 			setIsSubmitted(true);
 		} catch (err) {
