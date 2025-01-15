@@ -14,10 +14,13 @@ const EmailVerificationPage: React.FC = () => {
 	useEffect(() => {
 		const verifyEmail = async () => {
 			try {
-				const response = await axios.post("/api/users/verify-email/", {
-					uidb64,
-					token,
-				});
+				const response = await axios.post(
+					"/api/users/finalize-password-reset/",
+					{
+						uidb64,
+						token,
+					}
+				);
 
 				setVerified(true);
 				message.success(
