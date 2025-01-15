@@ -26,7 +26,7 @@ const SignUpPage: React.FC = () => {
 		setLoading(true);
 		try {
 			// Make a POST request to your Django endpoint
-			const res = await axios.post("/api/users/create_user_disabled", {
+			const res = await axios.post("/api/users/create_user", {
 				email: values.email.trim(),
 				password: values.password.trim(),
 				first_name: values.first_name.trim(),
@@ -139,7 +139,6 @@ const SignUpPage: React.FC = () => {
 									htmlType="submit"
 									loading={loading}
 									block
-									disabled
 								>
 									Create Account
 								</Button>

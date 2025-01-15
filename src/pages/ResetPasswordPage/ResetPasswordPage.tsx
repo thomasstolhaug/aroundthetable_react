@@ -30,7 +30,7 @@ const ResetPasswordPage: React.FC = () => {
 		setSubmitting(true);
 		try {
 			// POST to Django: /api/users/forgot_password_confirm
-			const res = await axios.post("/api/users/forgot_password_confirm/", {
+			const res = await axios.post("/api/users/finalize-password-reset/", {
 				uidb64,
 				token,
 				new_password: values.new_password,

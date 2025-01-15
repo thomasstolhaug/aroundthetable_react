@@ -54,7 +54,10 @@ function AppRoutes() {
 					path="/request-reset-password"
 					element={<RequestResetPasswordPage />}
 				/>
-				<Route path="/reset-password" element={<ResetPasswordPage />} />
+				<Route
+					path="/reset-password/:uidb64?/:token?"
+					element={<ResetPasswordPage />}
+				/>
 				<Route path="/about" element={<AboutUs />} />
 				<Route path="/access" element={<AccessDiscussionPage />} />
 				<Route path="/answer" element={<AnswerQuestionnairePage />} />
