@@ -6,6 +6,7 @@
     background-color: #ffffff;
     padding-top: 10px;
     justify-content: space-between;
+    border-right: 1px solid #e8e8e8;
 }
 
 .side-nav-menu {
@@ -29,7 +30,11 @@
 }
 
 .side-nav-menu .ant-menu-item::after {
-    border-right-color: #3f65f3 !important;
+    border-inline-end: none !important;
+}
+
+.side-nav-menu.ant-menu {
+    border-inline-end: none !important;
 }
 
 .side-nav-header {
@@ -44,4 +49,29 @@
     flex-direction: column;
     gap: 8px;
     justify-content: center;
+}
+
+.side-nav-header .ant-input-search {
+    width: calc(100% - 20px);
+}
+
+.side-nav-header .ant-input-search .ant-input-disabled {
+    background-color: #f9f9f9;
+    border-color: #f0f0f0;
+    color: #bfbfbf;
+}
+
+.side-nav-header .ant-input-search .ant-input-group-addon {
+    background-color: #f9f9f9;
+    border-color: #f0f0f0;
+}
+
+.side-nav-header .ant-input-search .ant-input-search-button {
+    border-color: #f0f0f0;
+}
+
+@media screen and (max-width: 1050px) {
+    .side-nav {
+        display: none;
+    }
 }

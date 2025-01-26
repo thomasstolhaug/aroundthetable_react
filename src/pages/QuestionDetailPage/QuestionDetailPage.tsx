@@ -6,7 +6,6 @@ import {
 	Spin,
 	Tag,
 	Card,
-	Descriptions,
 	Table,
 	Button,
 	Popconfirm,
@@ -231,23 +230,13 @@ const QuestionDetailPage: React.FC = () => {
 			title: "Answer",
 			dataIndex: "answer",
 			key: "answer",
-			width: "60%",
+			ellipsis: true,
+			width: "90%",
 		},
 		{
-			title: "Created At",
-			dataIndex: "created_at",
-			key: "created_at",
-			render: (date: string) => new Date(date).toLocaleDateString(),
-		},
-		{
-			title: "Created By",
-			dataIndex: "created_by",
-			key: "created_by",
-			render: (userId: number) => `User ${userId}`,
-		},
-		{
-			title: "Actions",
+			title: "",
 			key: "actions",
+			width: "10%",
 			render: (_, record) => (
 				<Popconfirm
 					title="Delete this answer?"
@@ -358,6 +347,10 @@ const QuestionDetailPage: React.FC = () => {
 		}
 	};
 
+	const truncateText = (text: string, limit: number = 50) => {
+		return text.length > limit ? text.substring(0, limit - 3) + "..." : text;
+	};
+
 	if (loading)
 		return (
 			<div className="page-container">
@@ -383,54 +376,18 @@ const QuestionDetailPage: React.FC = () => {
 									{loadingQuestionnaire ? (
 										<Spin size="small" />
 									) : (
-										questionnaire?.name || question.questionnaire
+										truncateText(questionnaire?.name || question.questionnaire)
 									)}
 								</Link>
 							),
 						},
-						{ title: question.question },
+						{ title: truncateText(question.question) },
 					]}
 				/>
 				<Typography.Title level={1} className="page-title">
 					{question.question}
 				</Typography.Title>
 			</div>
-
-			<Card className="question-detail section-card">
-				<Descriptions column={1}>
-					<Descriptions.Item label="Question ID">
-						<Typography.Text copyable>{question.id}</Typography.Text>
-					</Descriptions.Item>
-					<Descriptions.Item label="Required">
-						{question.required ? (
-							<Tag color="red">Required</Tag>
-						) : (
-							<Tag color="default">Optional</Tag>
-						)}
-					</Descriptions.Item>
-					<Descriptions.Item label="Answer Character Limit">
-						{question.answer_character_limit} characters
-					</Descriptions.Item>
-					<Descriptions.Item label="Questionnaire">
-						{loadingQuestionnaire ? (
-							<Spin size="small" />
-						) : (
-							<>
-								<Typography.Text>
-									{questionnaire?.name || "Unknown"}
-								</Typography.Text>
-								<Typography.Text
-									type="secondary"
-									copyable
-									style={{ marginLeft: 8 }}
-								>
-									(ID: {question.questionnaire})
-								</Typography.Text>
-							</>
-						)}
-					</Descriptions.Item>
-				</Descriptions>
-			</Card>
 
 			<Card className="summary-section section-card">
 				<Typography.Title level={4}>Summary</Typography.Title>
@@ -513,6 +470,7 @@ const QuestionDetailPage: React.FC = () => {
 						pageSize: 20,
 						showSizeChanger: false,
 					}}
+					scroll={{ x: true }}
 				/>
 				<Modal
 					title="Add Answer"

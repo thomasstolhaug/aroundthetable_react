@@ -4,15 +4,12 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "../pages/HomePage/HomePage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
-import AboutUs from "../pages/AboutUs/AboutUs";
 import RequestResetPasswordPage from "../pages/RequestResetPasswordPage/RequestResetPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage/ResetPasswordPage";
 import SignUpPage from "../pages/SignUpPage/SignUpPage";
-import DashboardPage from "../pages/DashboardPage/DashboardPage";
 import DiscussionsPage from "../pages/DiscussionsPage/DiscussionsPage";
 import DiscussionDetailPage from "../pages/DiscussionDetailPage/DiscussionDetailPage";
 import QuestionDetailPage from "../pages/QuestionDetailPage/QuestionDetailPage";
-import ProfileEditPage from "../pages/ProfileEditPage/ProfileEditPage";
 import AccessDiscussionPage from "../pages/AccessDiscussionPage/AccessDiscussionPage";
 import AnswerQuestionnairePage from "../pages/AnswerQuestionnairePage/AnswerQuestionnairePage";
 import EmailVerificationPage from "../pages/EmailVerificationPage/EmailVerificationPage";
@@ -32,14 +29,12 @@ function AppRoutes() {
 				{/* Protected routes */}
 				<Route element={<UserAuthProtectedRoute />}>
 					<Route element={<DashboardLayout />}>
-						<Route path="/dashboard" element={<DashboardPage />} />
 						<Route path="/discussions" element={<DiscussionsPage />} />
 						<Route path="/discussions/:id" element={<DiscussionDetailPage />} />
 						<Route
 							path="/discussions/:id/questions/:questionId"
 							element={<QuestionDetailPage />}
 						/>
-						<Route path="/profile" element={<ProfileEditPage />} />
 					</Route>
 				</Route>
 
@@ -59,7 +54,6 @@ function AppRoutes() {
 					path="/reset-password/:uidb64?/:token?"
 					element={<ResetPasswordPage />}
 				/>
-				<Route path="/about" element={<AboutUs />} />
 				<Route path="/access" element={<AccessDiscussionPage />} />
 				<Route path="/answer" element={<AnswerQuestionnairePage />} />
 				<Route

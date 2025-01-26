@@ -107,6 +107,13 @@
 	.meta-label {
 		text-align: left;
 	}
+
+	.discussion-title {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+	}
 }
 
 /* Add new styles for status positioning */
@@ -137,8 +144,8 @@
 
 .page-header {
 	margin-bottom: 24px;
+	padding: 24px 24px 0;  /* Add default padding */
 }
-
 
 .page-header-content {
 	display: flex;
@@ -190,4 +197,26 @@
 	justify-content: center;
 	align-items: center;
 	min-height: 200px;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 1550px) {
+	.page-header {
+		padding: 0px 10px 30px;  
+		margin-bottom: 16px; 
+	}
+
+	.page-header-content {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1px;
+	}
+
+	.page-header .ant-breadcrumb {
+		margin-bottom: 4px;  /* Reduce space between breadcrumb and title */
+	}
+
+	.page-header .ant-typography {
+		font-size: 24px;  /* Slightly smaller title on mobile */
+	}
 } 

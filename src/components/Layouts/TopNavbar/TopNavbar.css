@@ -7,7 +7,7 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 0 20px;
-	/* border-bottom: 1px solid #e5e5e5; */
+	border-bottom: 1px solid #e5e5e5;
 }
 
 .desktop-navbar-left {
@@ -45,7 +45,7 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 0 20px;
-
+	border-bottom: 1px solid #e5e5e5;
 }
 
 .mobile-navbar-left {
@@ -74,12 +74,18 @@
 	margin: 10px 0;
 }
 
+.mobile-drawer-content .ant-btn-text {
+    text-align: left;
+    padding: 8px 0;
+}
 
+.mobile-drawer-content .ant-btn-text:hover:not([disabled]) {
+    background-color: rgba(0, 0, 0, 0.04);
+}
 
-
-
-
-
+.mobile-drawer-content .ant-typography {
+    display: block;
+}
 
 /* Responsive */
 @media (min-width: 1050px) {

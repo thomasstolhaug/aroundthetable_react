@@ -4,7 +4,6 @@ import {
 	List,
 	Button,
 	Space,
-	Tag,
 	Breadcrumb,
 	Spin,
 	Modal,
@@ -36,6 +35,16 @@ interface CreateDiscussionValues {
 	description: string;
 }
 
+const truncateTitle = (title: string, limit: number = 50) => {
+	if (title.length <= limit) return title;
+	return `${title.slice(0, limit)}...`;
+};
+
+const truncateDescription = (description: string, limit: number = 200) => {
+	if (description.length <= limit) return description;
+	return `${description.slice(0, limit)}...`;
+};
+
 const DiscussionsPage: React.FC = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
@@ -43,6 +52,7 @@ const DiscussionsPage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [form] = Form.useForm();
 	const { csrfToken } = useCsrf();
+	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
 	useEffect(() => {
 		const fetchQuestionnaires = async () => {
@@ -59,6 +69,15 @@ const DiscussionsPage: React.FC = () => {
 		};
 
 		fetchQuestionnaires();
+	}, []);
+
+	useEffect(() => {
+		const handleResize = () => {
+			setIsMobile(window.innerWidth <= 768);
+		};
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
 	const handleCreateDiscussion = async (values: CreateDiscussionValues) => {
@@ -122,22 +141,15 @@ const DiscussionsPage: React.FC = () => {
 						renderItem={(item: Questionnaire) => (
 							<List.Item className="discussion-item">
 								<div className="discussion-content">
-									<div className="discussion-status">
-										<Tag color={item.status === "draft" ? "blue" : "green"}>
-											{item.status.charAt(0).toUpperCase() +
-												item.status.slice(1)}
-										</Tag>
-									</div>
 									<div className="discussion-main">
 										<Typography.Title level={3} className="discussion-title">
-											{item.name}
+											{isMobile ? truncateTitle(item.name) : item.name}
 										</Typography.Title>
 										<Typography.Paragraph className="discussion-description">
-											{item.description}
+											{isMobile
+												? truncateDescription(item.description)
+												: item.description}
 										</Typography.Paragraph>
-										<div className="discussion-responses">
-											<span className="responses-count">x responses</span>
-										</div>
 									</div>
 									<div className="discussion-meta">
 										<Space

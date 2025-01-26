@@ -1,29 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./SideNav.css";
-import { Typography } from "antd";
+import { Typography, Input } from "antd";
 import { Menu } from "antd";
-import { MessageOutlined, TeamOutlined } from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import { Button } from "antd";
 import {
+	MessageOutlined,
 	SettingOutlined,
 	UserOutlined,
-	DashboardOutlined,
+	TeamOutlined,
+	BarChartOutlined,
+	GlobalOutlined,
 } from "@ant-design/icons";
+import type { MenuProps } from "antd";
+import { Button } from "antd";
+import ProfileEditModal from "../../ProfileEditModal/ProfileEditModal";
 
 const SideNav: React.FC = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
 	const menuItems: MenuProps["items"] = [
-		{
-			key: "dashboard",
-			icon: <DashboardOutlined />,
-			label: "Dashboard",
-			disabled: true,
-			onClick: () => navigate("/dashboard"),
-		},
 		{
 			key: "discussions",
 			icon: <MessageOutlined />,
@@ -34,31 +31,51 @@ const SideNav: React.FC = () => {
 			key: "groups",
 			icon: <TeamOutlined />,
 			label: "Groups",
-			disabled: true,
 			onClick: () => navigate("/groups"),
+			disabled: true,
+		},
+		{
+			key: "reports",
+			icon: <BarChartOutlined />,
+			label: "Reports",
+			onClick: () => navigate("/reports"),
+			disabled: true,
+		},
+		{
+			key: "community",
+			icon: <GlobalOutlined />,
+			label: "Community",
+			onClick: () => navigate("/community"),
+			disabled: true,
 		},
 	];
 
 	return (
 		<div className="side-nav">
 			<div className="side-nav-header">
-				<Typography.Title
-					level={5}
-					style={{ borderBottom: "1px solid #eee", padding: "20px" }}
-				>
-					Discussions
+				<Input.Search
+					placeholder="Search discussions..."
+					disabled
+					style={{ margin: "10px" }}
+				/>
+				<Typography.Title level={4} style={{ margin: "16px 16px 0" }}>
+					Dashboard
 				</Typography.Title>
 				<Menu
 					mode="inline"
 					selectedKeys={[location.pathname.split("/")[1] || "discussions"]}
 					items={menuItems}
 					className="side-nav-menu"
-					style={{ height: "auto" }}
+					style={{ height: "auto", marginTop: "20px" }}
 				/>
 			</div>
 
 			<div className="side-nav-footer">
-				<Button type="default" block onClick={() => navigate("/profile")}>
+				<Button
+					type="default"
+					block
+					onClick={() => setIsProfileModalOpen(true)}
+				>
 					<UserOutlined /> My account
 				</Button>
 				<Button
@@ -70,6 +87,11 @@ const SideNav: React.FC = () => {
 					<SettingOutlined /> Settings
 				</Button>
 			</div>
+
+			<ProfileEditModal
+				isOpen={isProfileModalOpen}
+				onClose={() => setIsProfileModalOpen(false)}
+			/>
 		</div>
 	);
 };

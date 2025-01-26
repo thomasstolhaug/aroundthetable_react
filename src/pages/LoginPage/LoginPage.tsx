@@ -5,12 +5,14 @@ import { useCsrf } from "../../context/CsrfProvider";
 import { useUser } from "../../context/UserContext";
 import { Link } from "react-router-dom";
 import "./LoginPage.css";
+import { useNavigate } from "react-router-dom";
 
 axios.defaults.withCredentials = true;
 
 const Login: React.FC = () => {
 	const { tokenLoaded } = useCsrf();
 	const { login } = useUser();
+	const navigate = useNavigate();
 
 	// Local state to track if we're currently submitting
 	const [loggingIn, setLoggingIn] = useState(false);
@@ -19,6 +21,7 @@ const Login: React.FC = () => {
 		try {
 			setLoggingIn(true);
 			await login(values.email, values.password);
+			navigate("/discussions", { replace: true });
 			console.log("User logged in successfully!");
 		} catch (err: any) {
 			if (axios.isAxiosError(err)) {

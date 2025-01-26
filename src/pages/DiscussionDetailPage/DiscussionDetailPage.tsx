@@ -23,19 +23,20 @@ import {
 	DeleteOutlined,
 	ShareAltOutlined,
 	EditOutlined,
+	QrcodeOutlined,
 } from "@ant-design/icons";
 import { QRCodeSVG } from "qrcode.react";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 interface QuestionnaireResponse {
 	questionnaire: {
 		id: string;
 		name: string;
 		description: string;
-		created_by: number;
-		published_at: string | null;
 		completed_at: string | null;
-		expiration_date: string | null;
 		status: "draft" | "published" | "completed";
 	};
 }
@@ -97,6 +98,7 @@ const DiscussionDetailPage: React.FC = () => {
 	const [analysisResponse, setAnalysisResponse] =
 		useState<AnalysisResponse | null>(null);
 	const [startingAnalysis, setStartingAnalysis] = useState(false);
+	const [qrModalVisible, setQrModalVisible] = useState(false);
 
 	useEffect(() => {
 		const fetchQuestionnaire = async () => {
@@ -248,8 +250,6 @@ const DiscussionDetailPage: React.FC = () => {
 			setAnalysisModalVisible(true);
 		} catch (error: any) {
 			console.error("Error checking questionnaire readiness:", error);
-
-			// Check if it's an Axios error with a response, and if there's a .data.error message
 			if (axios.isAxiosError(error) && error.response?.data?.error) {
 				message.error(error.response.data.error);
 			} else {
@@ -275,16 +275,13 @@ const DiscussionDetailPage: React.FC = () => {
 				}
 			);
 
-			// If successful, show a success message
 			message.success(
 				response.data.message || "Analysis started successfully."
 			);
-			// Optionally close the modal
 			setAnalysisModalVisible(false);
 		} catch (error: any) {
 			console.error("Error starting analysis:", error);
 
-			// Show an error message. Adjust the check if your error shape is different.
 			if (axios.isAxiosError(error) && error.response?.data?.error) {
 				message.error(error.response.data.error);
 			} else {
@@ -322,7 +319,6 @@ const DiscussionDetailPage: React.FC = () => {
 					withCredentials: true,
 				}
 			);
-			// Refresh share info after disabling
 			await fetchShareInfo();
 		} catch (error) {
 			console.error("Error disabling share:", error);
@@ -348,11 +344,9 @@ const DiscussionDetailPage: React.FC = () => {
 				}
 			);
 
-			// Check for error first
 			if (response.data.cannot_share) {
 				message.error(response.data.cannot_share);
 			} else {
-				// If there's a success message, show it
 				if (response.data.message) {
 					message.success(response.data.message);
 				}
@@ -416,7 +410,7 @@ const DiscussionDetailPage: React.FC = () => {
 
 	return (
 		<>
-			<div className="page-header" style={{ marginBottom: "24px" }}>
+			<div className="page-header">
 				<Breadcrumb
 					items={[
 						{
@@ -434,17 +428,11 @@ const DiscussionDetailPage: React.FC = () => {
 				</div>
 			</div>
 
-			<div className="discussion-detail" style={{ marginBottom: "32px" }}>
-				<div
-					style={{
-						display: "flex",
-						gap: "48px",
-						marginBottom: "24px",
-						position: "relative",
-					}}
-				>
-					{/* Left section - Description */}
-					<div style={{ flex: 2 }}>
+			{/* Grid layout with 2 columns on desktop, 1 column below 1050px */}
+			<div className="discussion-layout">
+				{/* Main content */}
+				<div className="discussion-container">
+					<div className="discussion-card" style={{ height: "100%" }}>
 						<Typography.Title level={4} style={{ marginBottom: "16px" }}>
 							Description
 						</Typography.Title>
@@ -453,124 +441,106 @@ const DiscussionDetailPage: React.FC = () => {
 								{questionnaire.description}
 							</Typography.Paragraph>
 						)}
+
+						<div style={{ marginTop: "24px" }} className="discussion-actions">
+							{activeShare ? (
+								<Button
+									onClick={handleDisableSharing}
+									icon={<ShareAltOutlined />}
+									danger
+								>
+									Stop Sharing Discussion
+								</Button>
+							) : (
+								<Button
+									onClick={() => setShareModalVisible(true)}
+									icon={<ShareAltOutlined />}
+								>
+									Share Discussion
+								</Button>
+							)}
+
+							<Button
+								onClick={handleAnalyzeQuestionnaire}
+								loading={analyzing}
+								type="primary"
+								style={{ backgroundColor: "#3f65f3" }}
+							>
+								Analyze Discussion
+							</Button>
+
+							<Button danger onClick={() => setDeleteModalVisible(true)}>
+								Delete Discussion
+							</Button>
+						</div>
 					</div>
+				</div>
 
-					{/* Right section - Metadata */}
-					<div style={{ flex: 1 }}>
-						<Typography.Title
-							level={4}
-							style={{
-								marginBottom: "16px",
-								textAlign: "right",
-								marginRight: "16px",
-							}}
-						>
-							Details
-						</Typography.Title>
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								gap: "8px",
-								paddingLeft: "16px",
-							}}
-						>
-							<div
-								style={{
-									display: "flex",
-									gap: "8px",
-									justifyContent: "right",
-									marginRight: "16px",
-								}}
-							>
-								<Typography.Text type="secondary">Created by:</Typography.Text>
-								<Typography.Text>
-									User {questionnaire.created_by}
-								</Typography.Text>
-							</div>
-							<div
-								style={{
-									display: "flex",
-									gap: "8px",
-									justifyContent: "right",
-									marginRight: "16px",
-								}}
-							>
-								<Typography.Text type="secondary">Published:</Typography.Text>
-								<Typography.Text>
-									{questionnaire.published_at || "Not published"}
-								</Typography.Text>
-							</div>
-							<div
-								style={{
-									display: "flex",
-									gap: "8px",
-									justifyContent: "right",
-									marginRight: "16px",
-								}}
-							>
-								<Typography.Text type="secondary">Expires:</Typography.Text>
-								<Typography.Text>
-									{questionnaire.expiration_date || "No expiration date"}
-								</Typography.Text>
-							</div>
+				{/* Sidebar/Details */}
+				<div className="discussion-container">
+					{activeShare && (
+						<div className="discussion-card" style={{ height: "100%" }}>
+							<Typography.Title level={4} className="share-details-title">
+								Share Details
+							</Typography.Title>
 
-							{activeShare && (
-								<>
-									<div
-										style={{
-											display: "flex",
-											gap: "8px",
-											justifyContent: "right",
-											marginRight: "16px",
-											alignItems: "center",
-										}}
-									>
-										<Typography.Text type="secondary">
-											Access Code:
-										</Typography.Text>
-										<Typography.Text copyable>
-											{activeShare.access_code}
-										</Typography.Text>
-										<QRCodeSVG
-											value={`${window.location.origin}/answer?code=${activeShare.access_code}`}
-											size={100}
-											style={{ marginLeft: "8px" }}
-										/>
-									</div>
-									<div
-										style={{
-											display: "flex",
-											gap: "8px",
-											justifyContent: "right",
-											marginRight: "16px",
-										}}
-									>
-										<Typography.Text type="secondary">
-											Share Status:
-										</Typography.Text>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									gap: "8px",
+									alignItems: "center",
+								}}
+							>
+								{/* Access Code */}
+								<div
+									style={{
+										display: "flex",
+										justifyContent: "space-between",
+										alignItems: "center",
+										width: "100%",
+									}}
+								>
+									<Typography.Text type="secondary">
+										Access Code:
+									</Typography.Text>
+									<Typography.Text copyable>
+										{activeShare.access_code}
+									</Typography.Text>
+								</div>
+
+								{/* QR Code (button) */}
+								<div
+									style={{
+										display: "flex",
+										justifyContent: "space-between",
+										alignItems: "center",
+										width: "100%",
+									}}
+								>
+									<Typography.Text type="secondary">
+										QR Code (click):
+									</Typography.Text>
+									<Button
+										type="text"
+										icon={<QrcodeOutlined />}
+										onClick={() => setQrModalVisible(true)}
+									/>
+								</div>
+
+								{/* Expiration Date with Edit */}
+								<div
+									style={{
+										display: "flex",
+										justifyContent: "space-between",
+										alignItems: "center",
+										width: "100%",
+									}}
+								>
+									<Typography.Text type="secondary">Expires:</Typography.Text>
+									<div style={{ display: "flex", alignItems: "center" }}>
 										<Typography.Text>
-											{activeShare.is_active ? (
-												<Tag color="success">Active</Tag>
-											) : (
-												<Tag color="error">Inactive</Tag>
-											)}
-										</Typography.Text>
-									</div>
-									<div
-										style={{
-											display: "flex",
-											gap: "8px",
-											justifyContent: "right",
-											marginRight: "16px",
-											alignItems: "center",
-										}}
-									>
-										<Typography.Text type="secondary">
-											Share Expires:
-										</Typography.Text>
-										<Typography.Text>
-											{activeShare.expiration_date}
+											{dayjs(activeShare.expiration_date).format("MMM D, YYYY")}
 										</Typography.Text>
 										<Button
 											type="text"
@@ -581,181 +551,16 @@ const DiscussionDetailPage: React.FC = () => {
 											}}
 										/>
 									</div>
-								</>
-							)}
-						</div>
-					</div>
-				</div>
-
-				{/* Buttons below both sections */}
-				<div style={{ marginTop: "24px" }}>
-					{activeShare ? (
-						<Button
-							onClick={handleDisableSharing}
-							icon={<ShareAltOutlined />}
-							style={{ marginRight: "8px" }}
-							danger
-						>
-							Stop Sharing Discussion
-						</Button>
-					) : (
-						<Button
-							onClick={() => setShareModalVisible(true)}
-							icon={<ShareAltOutlined />}
-							style={{ marginRight: "8px" }}
-						>
-							Share Discussion
-						</Button>
-					)}
-					<Button
-						onClick={handleAnalyzeQuestionnaire}
-						loading={analyzing}
-						type="primary"
-						style={{ backgroundColor: "#3f65f3", marginRight: "8px" }}
-					>
-						Analyze Discussion
-					</Button>
-					<Button danger onClick={() => setDeleteModalVisible(true)}>
-						Delete Discussion
-					</Button>
-
-					<Modal
-						title="Share Discussion"
-						open={shareModalVisible}
-						onCancel={() => setShareModalVisible(false)}
-						footer={null}
-					>
-						<Form onFinish={handleShareQuestionnaire} layout="vertical">
-							<Form.Item
-								name="expiration_date"
-								label="Expiration Date"
-								rules={[
-									{
-										required: true,
-										message: "Please select an expiration date",
-									},
-								]}
-							>
-								<DatePicker
-									style={{ width: "100%" }}
-									disabledDate={disablePastDates}
-								/>
-							</Form.Item>
-							<Form.Item>
-								<Button type="primary" htmlType="submit" loading={sharing}>
-									Share
-								</Button>
-							</Form.Item>
-						</Form>
-					</Modal>
-
-					<Modal
-						title="Delete Discussion"
-						open={deleteModalVisible}
-						onOk={handleDeleteQuestionnaire}
-						onCancel={() => setDeleteModalVisible(false)}
-						okText="Delete"
-						okButtonProps={{ danger: true }}
-					>
-						<p>
-							Are you sure you want to delete this discussion? This action
-							cannot be undone.
-						</p>
-					</Modal>
-
-					<Modal
-						title="Update Share Expiration"
-						open={editExpirationModalVisible}
-						onCancel={() => setEditExpirationModalVisible(false)}
-						footer={null}
-					>
-						<Form onFinish={handleUpdateShareExpiration} layout="vertical">
-							<Form.Item
-								name="expiration_date"
-								label="New Expiration Date"
-								rules={[
-									{
-										required: true,
-										message: "Please select an expiration date",
-									},
-								]}
-							>
-								<DatePicker
-									style={{ width: "100%" }}
-									disabledDate={disablePastDates}
-								/>
-							</Form.Item>
-							<Form.Item>
-								<Button
-									type="primary"
-									htmlType="submit"
-									loading={updatingExpiration}
-								>
-									Update Expiration
-								</Button>
-							</Form.Item>
-						</Form>
-					</Modal>
-
-					<Modal
-						title="Are you sure you want to analyze the discussion?"
-						open={analysisModalVisible}
-						onCancel={() => setAnalysisModalVisible(false)}
-						footer={[
-							<Button
-								key="cancel"
-								onClick={() => setAnalysisModalVisible(false)}
-							>
-								Cancel
-							</Button>,
-							<Button
-								key="analyze"
-								type="primary"
-								loading={startingAnalysis}
-								onClick={handleStartAnalysis}
-							>
-								Start Analysis
-							</Button>,
-						]}
-					>
-						<div style={{ marginBottom: 16 }}>
-							<Typography.Text>
-								Once the analysis is started, the discussion is marked as closed
-								and will no collect answers.{" "}
-							</Typography.Text>
-							<br></br>
-							<br></br>
-							<Typography.Text>{analysisResponse?.message}</Typography.Text>
-						</div>
-						{analysisResponse?.questions_not_answered &&
-							analysisResponse.questions_not_answered.length > 0 && (
-								<div>
-									<Typography.Text strong>
-										Questions without answers:
-									</Typography.Text>
-									<ul>
-										{analysisResponse.questions_not_answered.map(
-											(question, idx) => (
-												<li key={idx}>{question}</li>
-											)
-										)}
-									</ul>
 								</div>
-							)}
-					</Modal>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 
+			{/* Questions Section */}
 			<div className="questions-section">
-				<div
-					className="questions-header"
-					style={{
-						marginBottom: "24px",
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "center",
-					}}
-				>
+				<div className="questions-header">
 					<Typography.Title level={3} style={{ marginBottom: 0 }}>
 						Questions
 					</Typography.Title>
@@ -763,7 +568,7 @@ const DiscussionDetailPage: React.FC = () => {
 						type="primary"
 						icon={<PlusOutlined />}
 						onClick={() => setIsModalVisible(true)}
-						style={{ backgroundColor: "#3f65f3" }}
+						style={{ backgroundColor: "#3f65f3", marginRight: "16px" }}
 					>
 						Add Question
 					</Button>
@@ -797,6 +602,7 @@ const DiscussionDetailPage: React.FC = () => {
 											}}
 										/>
 									</div>
+
 									<div className="question-meta">
 										{question.required && <Tag color="red">Required</Tag>}
 										<Typography.Text type="secondary">
@@ -809,6 +615,7 @@ const DiscussionDetailPage: React.FC = () => {
 					)}
 				/>
 
+				{/* Add Question Modal */}
 				<Modal
 					title="Add New Question"
 					open={isModalVisible}
@@ -848,6 +655,150 @@ const DiscussionDetailPage: React.FC = () => {
 					</Form>
 				</Modal>
 			</div>
+
+			{/* Share Modal */}
+			<Modal
+				title="Share Discussion"
+				open={shareModalVisible}
+				onCancel={() => setShareModalVisible(false)}
+				footer={null}
+			>
+				<Form onFinish={handleShareQuestionnaire} layout="vertical">
+					<Form.Item
+						name="expiration_date"
+						label="Expiration Date"
+						rules={[
+							{
+								required: true,
+								message: "Please select an expiration date",
+							},
+						]}
+					>
+						<DatePicker
+							style={{ width: "100%" }}
+							disabledDate={disablePastDates}
+						/>
+					</Form.Item>
+					<Form.Item>
+						<Button type="primary" htmlType="submit" loading={sharing}>
+							Share
+						</Button>
+					</Form.Item>
+				</Form>
+			</Modal>
+
+			{/* Delete Discussion Modal */}
+			<Modal
+				title="Delete Discussion"
+				open={deleteModalVisible}
+				onOk={handleDeleteQuestionnaire}
+				onCancel={() => setDeleteModalVisible(false)}
+				okText="Delete"
+				okButtonProps={{ danger: true }}
+			>
+				<p>
+					Are you sure you want to delete this discussion? This action cannot be
+					undone.
+				</p>
+			</Modal>
+
+			{/* Update Share Expiration Modal */}
+			<Modal
+				title="Update Share Expiration"
+				open={editExpirationModalVisible}
+				onCancel={() => setEditExpirationModalVisible(false)}
+				footer={null}
+			>
+				<Form onFinish={handleUpdateShareExpiration} layout="vertical">
+					<Form.Item
+						name="expiration_date"
+						label="New Expiration Date"
+						rules={[
+							{
+								required: true,
+								message: "Please select an expiration date",
+							},
+						]}
+					>
+						<DatePicker
+							style={{ width: "100%" }}
+							disabledDate={disablePastDates}
+						/>
+					</Form.Item>
+					<Form.Item>
+						<Button
+							type="primary"
+							htmlType="submit"
+							loading={updatingExpiration}
+						>
+							Update Expiration
+						</Button>
+					</Form.Item>
+				</Form>
+			</Modal>
+
+			{/* Analysis Confirmation Modal */}
+			<Modal
+				title="Are you sure you want to analyze the discussion?"
+				open={analysisModalVisible}
+				onCancel={() => setAnalysisModalVisible(false)}
+				footer={[
+					<Button key="cancel" onClick={() => setAnalysisModalVisible(false)}>
+						Cancel
+					</Button>,
+					<Button
+						key="analyze"
+						type="primary"
+						loading={startingAnalysis}
+						onClick={handleStartAnalysis}
+					>
+						Start Analysis
+					</Button>,
+				]}
+			>
+				<div style={{ marginBottom: 16 }}>
+					<Typography.Text>
+						Once the analysis is started, the discussion is marked as closed and
+						will not collect answers.{" "}
+					</Typography.Text>
+					<br />
+					<br />
+					<Typography.Text>{analysisResponse?.message}</Typography.Text>
+				</div>
+				{analysisResponse?.questions_not_answered &&
+					analysisResponse.questions_not_answered.length > 0 && (
+						<div>
+							<Typography.Text strong>
+								Questions without answers:
+							</Typography.Text>
+							<ul>
+								{analysisResponse.questions_not_answered.map(
+									(question, idx) => (
+										<li key={idx}>{question}</li>
+									)
+								)}
+							</ul>
+						</div>
+					)}
+			</Modal>
+
+			{/* QR Code Modal */}
+			<Modal
+				title="QR Code"
+				open={qrModalVisible}
+				onCancel={() => setQrModalVisible(false)}
+				footer={null}
+				centered
+			>
+				<div
+					style={{ display: "flex", justifyContent: "center", padding: "24px" }}
+				>
+					<QRCodeSVG
+						value={`${window.location.origin}/answer?code=${activeShare?.access_code}`}
+						size={200}
+					/>
+				</div>
+			</Modal>
 		</>
 	);
 };

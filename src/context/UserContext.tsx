@@ -1,17 +1,13 @@
-// src/context/UserContext.tsx
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useCsrf } from "./CsrfProvider";
 import { useEffect } from "react";
 
-// Define the user data shape
 interface User {
 	email: string;
 	firstName: string;
 	lastName: string;
-	isSuperUser: boolean;
-	// Add more fields as needed, e.g.: id, username, roles, etc.
 }
 
 // Define the UserContextProps interface
@@ -41,13 +37,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 	const { csrfToken, reloadCsrf } = useCsrf();
 
 	useEffect(() => {
-		// On mount, check if user is already logged in (server session)
 		const checkAuth = async () => {
 			try {
 				const res = await axios.get("/api/users/whoami/", {
 					withCredentials: true,
 				});
-				// Check if authenticated: false or no email in response
 				if (!res.data.email) {
 					setUser(null);
 				} else {
@@ -55,7 +49,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 						email: res.data.email,
 						firstName: res.data.first_name,
 						lastName: res.data.last_name,
-						isSuperUser: res.data.is_superuser,
 					});
 				}
 			} catch (error) {
@@ -81,18 +74,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 				}
 			);
 
+			const whoamiResponse = await axios.get("/api/users/whoami/", {
+				withCredentials: true,
+			});
+
 			// Reload CSRF token before updating user state
 			await reloadCsrf();
+			console.log("login response data:", res.data);
 
 			setUser({
-				email: res.data.email,
-				firstName: res.data.first_name,
-				lastName: res.data.last_name,
-				isSuperUser: res.data.is_superuser,
+				email: whoamiResponse.data.email,
+				firstName: whoamiResponse.data.first_name,
+				lastName: whoamiResponse.data.last_name,
 			});
 		} finally {
 			setLoadingUser(false);
-			navigate("/discussions", { replace: true });
 		}
 	};
 
