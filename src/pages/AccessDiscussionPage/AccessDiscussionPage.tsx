@@ -15,7 +15,7 @@ const AccessDiscussionPage: React.FC = () => {
 		setLoading(true);
 		try {
 			await axios.post(
-				"/api/sharing/validate_access_code",
+				"/api/share/validate_access_code",
 				{ access_code: values.access_code },
 				{
 					headers: { "X-CSRFToken": csrfToken },

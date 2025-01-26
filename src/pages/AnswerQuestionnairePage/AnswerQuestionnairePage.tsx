@@ -42,7 +42,7 @@ const AnswerQuestionnairePage: React.FC = () => {
 
 			try {
 				const response = await axios.post(
-					"/api/sharing/validate_access_code",
+					"/api/share/validate_access_code",
 					{ access_code: accessCode },
 					{
 						headers: { "X-CSRFToken": csrfToken },
@@ -73,7 +73,7 @@ const AnswerQuestionnairePage: React.FC = () => {
 			}));
 
 			await axios.post(
-				"/api/sharing/submit_answers",
+				"/api/share/submit_answers",
 				{
 					access_code: accessCode,
 					answers,

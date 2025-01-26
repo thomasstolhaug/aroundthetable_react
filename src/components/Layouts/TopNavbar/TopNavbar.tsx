@@ -82,9 +82,7 @@ const MainNavbar: React.FC = () => {
 								</Link>
 								<Link to="/signup">
 									<Tooltip title="Sign ups are currently invite only">
-										<Button type="primary" disabled>
-											Sign Up
-										</Button>
+										<Button type="primary">Sign Up</Button>
 									</Tooltip>
 								</Link>
 							</>
@@ -176,7 +174,7 @@ const MainNavbar: React.FC = () => {
 						</Link>
 						<Link to="/signup" onClick={handleHamurgerMenuClose}>
 							<Tooltip title="Sign ups are currently invite only">
-								<Button type="primary" disabled block>
+								<Button type="primary" block>
 									Sign Up
 								</Button>
 							</Tooltip>

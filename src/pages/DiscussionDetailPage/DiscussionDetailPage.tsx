@@ -12,6 +12,7 @@ import {
 	Switch,
 	InputNumber,
 	DatePicker,
+	message,
 } from "antd";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -21,8 +22,10 @@ import {
 	PlusOutlined,
 	DeleteOutlined,
 	ShareAltOutlined,
+	EditOutlined,
 } from "@ant-design/icons";
 import { QRCodeSVG } from "qrcode.react";
+import dayjs from "dayjs";
 
 interface QuestionnaireResponse {
 	questionnaire: {
@@ -51,14 +54,21 @@ interface QuestionResponse {
 
 interface ShareQuestionnaire {
 	id: string;
-	questionnaire: string;
+	questionnaire_id: string;
 	access_code: string;
 	expiration_date: string;
 	is_active: boolean;
 	created_at: string;
 	created_by: number;
-	last_accessed: string | null;
-	access_count: number;
+}
+
+interface ShareResponse {
+	active_share: ShareQuestionnaire | null;
+}
+
+interface AnalysisResponse {
+	message: string;
+	questions_not_answered?: string[];
 }
 
 const DiscussionDetailPage: React.FC = () => {
@@ -76,8 +86,17 @@ const DiscussionDetailPage: React.FC = () => {
 	const [analyzing, setAnalyzing] = useState(false);
 	const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 	const [shareModalVisible, setShareModalVisible] = useState(false);
+	const [activeShare, setActiveShare] = useState<ShareQuestionnaire | null>(
+		null
+	);
 	const [sharing, setSharing] = useState(false);
-	const [shareInfo, setShareInfo] = useState<ShareQuestionnaire | null>(null);
+	const [editExpirationModalVisible, setEditExpirationModalVisible] =
+		useState(false);
+	const [updatingExpiration, setUpdatingExpiration] = useState(false);
+	const [analysisModalVisible, setAnalysisModalVisible] = useState(false);
+	const [analysisResponse, setAnalysisResponse] =
+		useState<AnalysisResponse | null>(null);
+	const [startingAnalysis, setStartingAnalysis] = useState(false);
 
 	useEffect(() => {
 		const fetchQuestionnaire = async () => {
@@ -132,17 +151,15 @@ const DiscussionDetailPage: React.FC = () => {
 	const fetchShareInfo = async () => {
 		if (!id) return;
 		try {
-			const response = await axios.post<{
-				share_questionnaire: ShareQuestionnaire;
-			}>(
-				"/api/sharing/get_share_questionnaire",
+			const response = await axios.post<ShareResponse>(
+				"/api/share/get_share_info",
 				{ questionnaire_id: id },
 				{
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				}
 			);
-			setShareInfo(response.data.share_questionnaire);
+			setActiveShare(response.data.active_share);
 		} catch (error) {
 			console.error("Error fetching share info:", error);
 		}
@@ -217,7 +234,39 @@ const DiscussionDetailPage: React.FC = () => {
 		if (!id) return;
 		setAnalyzing(true);
 		try {
-			await axios.post(
+			const response = await axios.post<AnalysisResponse>(
+				"/api/pipelines/pre_analyze_control",
+				{ questionnaire_id: id },
+				{
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				}
+			);
+
+			// If server returned success data, proceed
+			setAnalysisResponse(response.data);
+			setAnalysisModalVisible(true);
+		} catch (error: any) {
+			console.error("Error checking questionnaire readiness:", error);
+
+			// Check if it's an Axios error with a response, and if there's a .data.error message
+			if (axios.isAxiosError(error) && error.response?.data?.error) {
+				message.error(error.response.data.error);
+			} else {
+				message.error("Failed to check questionnaire status.");
+			}
+		} finally {
+			setAnalyzing(false);
+		}
+	};
+
+	const handleStartAnalysis = async () => {
+		if (!id) return;
+		setStartingAnalysis(true);
+
+		try {
+			// Make the POST request to analyze_questionnaire
+			const response = await axios.post(
 				"/api/pipelines/analyze_questionnaire",
 				{ questionnaire_id: id },
 				{
@@ -225,10 +274,24 @@ const DiscussionDetailPage: React.FC = () => {
 					withCredentials: true,
 				}
 			);
-		} catch (error) {
-			console.error("Error analyzing questionnaire:", error);
+
+			// If successful, show a success message
+			message.success(
+				response.data.message || "Analysis started successfully."
+			);
+			// Optionally close the modal
+			setAnalysisModalVisible(false);
+		} catch (error: any) {
+			console.error("Error starting analysis:", error);
+
+			// Show an error message. Adjust the check if your error shape is different.
+			if (axios.isAxiosError(error) && error.response?.data?.error) {
+				message.error(error.response.data.error);
+			} else {
+				message.error("Failed to start analysis.");
+			}
 		} finally {
-			setAnalyzing(false);
+			setStartingAnalysis(false);
 		}
 	};
 
@@ -248,30 +311,91 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	const handleDisableSharing = async () => {
+		if (!id) return;
+		try {
+			await axios.post(
+				"/api/share/disable_sharing",
+				{ questionnaire_id: id },
+				{
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				}
+			);
+			// Refresh share info after disabling
+			await fetchShareInfo();
+		} catch (error) {
+			console.error("Error disabling share:", error);
+		}
+	};
+
 	const handleShareQuestionnaire = async (values: {
 		expiration_date: Date;
 	}) => {
 		if (!id) return;
 		setSharing(true);
+
 		try {
-			await axios.post(
-				"/api/sharing/share_questionnaire",
+			const response = await axios.post(
+				"/api/share/enable_sharing",
 				{
 					questionnaire_id: id,
-					expiration_date: values.expiration_date.toISOString().split("T")[0],
+					expiration_date: values.expiration_date.toISOString(),
 				},
 				{
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				}
 			);
+
+			// Check for error first
+			if (response.data.cannot_share) {
+				message.error(response.data.cannot_share);
+			} else {
+				// If there's a success message, show it
+				if (response.data.message) {
+					message.success(response.data.message);
+				}
+				await fetchShareInfo();
+			}
+
 			setShareModalVisible(false);
-			await fetchShareInfo();
 		} catch (error) {
 			console.error("Error sharing questionnaire:", error);
+			message.error("Failed to share questionnaire");
 		} finally {
 			setSharing(false);
 		}
+	};
+
+	const handleUpdateShareExpiration = async (values: {
+		expiration_date: Date;
+	}) => {
+		if (!id) return;
+		setUpdatingExpiration(true);
+		try {
+			await axios.post(
+				"/api/share/update_share_expiration_date",
+				{
+					questionnaire_id: id,
+					expiration_date: values.expiration_date.toISOString(),
+				},
+				{
+					headers: { "X-CSRFToken": csrfToken },
+					withCredentials: true,
+				}
+			);
+			setEditExpirationModalVisible(false);
+			await fetchShareInfo();
+		} catch (error) {
+			console.error("Error updating expiration date:", error);
+		} finally {
+			setUpdatingExpiration(false);
+		}
+	};
+
+	const disablePastDates = (current: dayjs.Dayjs) => {
+		return current && current < dayjs().startOf("day");
 	};
 
 	if (loading) {
@@ -391,7 +515,7 @@ const DiscussionDetailPage: React.FC = () => {
 								</Typography.Text>
 							</div>
 
-							{shareInfo && (
+							{activeShare && (
 								<>
 									<div
 										style={{
@@ -406,10 +530,10 @@ const DiscussionDetailPage: React.FC = () => {
 											Access Code:
 										</Typography.Text>
 										<Typography.Text copyable>
-											{shareInfo.access_code}
+											{activeShare.access_code}
 										</Typography.Text>
 										<QRCodeSVG
-											value={`${window.location.origin}/answer?code=${shareInfo.access_code}`}
+											value={`${window.location.origin}/answer?code=${activeShare.access_code}`}
 											size={100}
 											style={{ marginLeft: "8px" }}
 										/>
@@ -426,7 +550,7 @@ const DiscussionDetailPage: React.FC = () => {
 											Share Status:
 										</Typography.Text>
 										<Typography.Text>
-											{shareInfo.is_active ? (
+											{activeShare.is_active ? (
 												<Tag color="success">Active</Tag>
 											) : (
 												<Tag color="error">Inactive</Tag>
@@ -439,45 +563,24 @@ const DiscussionDetailPage: React.FC = () => {
 											gap: "8px",
 											justifyContent: "right",
 											marginRight: "16px",
+											alignItems: "center",
 										}}
 									>
 										<Typography.Text type="secondary">
 											Share Expires:
 										</Typography.Text>
 										<Typography.Text>
-											{shareInfo.expiration_date}
+											{activeShare.expiration_date}
 										</Typography.Text>
-									</div>
-									<div
-										style={{
-											display: "flex",
-											gap: "8px",
-											justifyContent: "right",
-											marginRight: "16px",
-										}}
-									>
-										<Typography.Text type="secondary">
-											Times Accessed:
-										</Typography.Text>
-										<Typography.Text>{shareInfo.access_count}</Typography.Text>
-									</div>
-									{shareInfo.last_accessed && (
-										<div
-											style={{
-												display: "flex",
-												gap: "8px",
-												justifyContent: "right",
-												marginRight: "16px",
+										<Button
+											type="text"
+											icon={<EditOutlined />}
+											onClick={(e) => {
+												e.stopPropagation();
+												setEditExpirationModalVisible(true);
 											}}
-										>
-											<Typography.Text type="secondary">
-												Last Accessed:
-											</Typography.Text>
-											<Typography.Text>
-												{shareInfo.last_accessed}
-											</Typography.Text>
-										</div>
-									)}
+										/>
+									</div>
 								</>
 							)}
 						</div>
@@ -486,19 +589,24 @@ const DiscussionDetailPage: React.FC = () => {
 
 				{/* Buttons below both sections */}
 				<div style={{ marginTop: "24px" }}>
-					<Button
-						onClick={() => setShareModalVisible(true)}
-						icon={<ShareAltOutlined />}
-						style={{ marginRight: "8px" }}
-						disabled={shareInfo?.is_active}
-						title={
-							shareInfo?.is_active
-								? "Discussion is already shared"
-								: "Share Discussion"
-						}
-					>
-						Share Discussion
-					</Button>
+					{activeShare ? (
+						<Button
+							onClick={handleDisableSharing}
+							icon={<ShareAltOutlined />}
+							style={{ marginRight: "8px" }}
+							danger
+						>
+							Stop Sharing Discussion
+						</Button>
+					) : (
+						<Button
+							onClick={() => setShareModalVisible(true)}
+							icon={<ShareAltOutlined />}
+							style={{ marginRight: "8px" }}
+						>
+							Share Discussion
+						</Button>
+					)}
 					<Button
 						onClick={handleAnalyzeQuestionnaire}
 						loading={analyzing}
@@ -528,7 +636,10 @@ const DiscussionDetailPage: React.FC = () => {
 									},
 								]}
 							>
-								<DatePicker style={{ width: "100%" }} />
+								<DatePicker
+									style={{ width: "100%" }}
+									disabledDate={disablePastDates}
+								/>
 							</Form.Item>
 							<Form.Item>
 								<Button type="primary" htmlType="submit" loading={sharing}>
@@ -550,6 +661,87 @@ const DiscussionDetailPage: React.FC = () => {
 							Are you sure you want to delete this discussion? This action
 							cannot be undone.
 						</p>
+					</Modal>
+
+					<Modal
+						title="Update Share Expiration"
+						open={editExpirationModalVisible}
+						onCancel={() => setEditExpirationModalVisible(false)}
+						footer={null}
+					>
+						<Form onFinish={handleUpdateShareExpiration} layout="vertical">
+							<Form.Item
+								name="expiration_date"
+								label="New Expiration Date"
+								rules={[
+									{
+										required: true,
+										message: "Please select an expiration date",
+									},
+								]}
+							>
+								<DatePicker
+									style={{ width: "100%" }}
+									disabledDate={disablePastDates}
+								/>
+							</Form.Item>
+							<Form.Item>
+								<Button
+									type="primary"
+									htmlType="submit"
+									loading={updatingExpiration}
+								>
+									Update Expiration
+								</Button>
+							</Form.Item>
+						</Form>
+					</Modal>
+
+					<Modal
+						title="Are you sure you want to analyze the discussion?"
+						open={analysisModalVisible}
+						onCancel={() => setAnalysisModalVisible(false)}
+						footer={[
+							<Button
+								key="cancel"
+								onClick={() => setAnalysisModalVisible(false)}
+							>
+								Cancel
+							</Button>,
+							<Button
+								key="analyze"
+								type="primary"
+								loading={startingAnalysis}
+								onClick={handleStartAnalysis}
+							>
+								Start Analysis
+							</Button>,
+						]}
+					>
+						<div style={{ marginBottom: 16 }}>
+							<Typography.Text>
+								Once the analysis is started, the discussion is marked as closed
+								and will no collect answers.{" "}
+							</Typography.Text>
+							<br></br>
+							<br></br>
+							<Typography.Text>{analysisResponse?.message}</Typography.Text>
+						</div>
+						{analysisResponse?.questions_not_answered &&
+							analysisResponse.questions_not_answered.length > 0 && (
+								<div>
+									<Typography.Text strong>
+										Questions without answers:
+									</Typography.Text>
+									<ul>
+										{analysisResponse.questions_not_answered.map(
+											(question, idx) => (
+												<li key={idx}>{question}</li>
+											)
+										)}
+									</ul>
+								</div>
+							)}
 					</Modal>
 				</div>
 			</div>

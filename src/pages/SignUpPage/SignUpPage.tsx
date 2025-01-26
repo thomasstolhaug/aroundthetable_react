@@ -17,6 +17,7 @@ const SignUpPage: React.FC = () => {
 		password: string;
 		first_name: string;
 		last_name: string;
+		code: string;
 	}) => {
 		setLoading(true);
 		try {
@@ -25,6 +26,7 @@ const SignUpPage: React.FC = () => {
 				password: values.password.trim(),
 				first_name: values.first_name.trim(),
 				last_name: values.last_name.trim(),
+				code: values.code.trim(),
 			};
 
 			// Make a POST request to your Django endpoint
@@ -88,9 +90,13 @@ const SignUpPage: React.FC = () => {
 						style={{
 							textAlign: "center",
 							marginBottom: 32,
+							fontSize: "16px",
+							color: "#3f65f3",
+							fontWeight: "500",
 						}}
 					>
-						Please fill out the form to create a new account.
+						For now, this is an invite-only platform. You need an early access
+						code in order to create a user.
 					</Typography.Paragraph>
 
 					<Form
@@ -102,8 +108,43 @@ const SignUpPage: React.FC = () => {
 							password: "",
 							first_name: "",
 							last_name: "",
+							code: "",
 						}}
 					>
+						<Form.Item
+							label={
+								<span
+									style={{
+										fontSize: "16px",
+										fontWeight: "500",
+										color: "#3f65f3",
+									}}
+								>
+									Early Access Code
+								</span>
+							}
+							name="code"
+							rules={[
+								{
+									required: true,
+									message: "Please enter your early access code",
+								},
+							]}
+							style={{
+								marginBottom: 32,
+								padding: "16px",
+								background: "#f0f5ff",
+								border: "1px solid #d6e4ff",
+								borderRadius: "8px",
+							}}
+						>
+							<Input
+								placeholder="Enter your early access code"
+								size="large"
+								style={{ borderColor: "#3f65f3" }}
+							/>
+						</Form.Item>
+
 						<Form.Item
 							label="First Name"
 							name="first_name"
@@ -178,7 +219,6 @@ const SignUpPage: React.FC = () => {
 										backgroundColor: "#3f65f3",
 										borderColor: "#3f65f3",
 									}}
-									disabled
 								>
 									Create Account
 								</Button>

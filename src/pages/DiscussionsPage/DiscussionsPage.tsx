@@ -34,7 +34,6 @@ interface Questionnaire {
 interface CreateDiscussionValues {
 	title: string;
 	description: string;
-	expiration_date: Date;
 }
 
 const DiscussionsPage: React.FC = () => {
@@ -69,7 +68,6 @@ const DiscussionsPage: React.FC = () => {
 				{
 					title: values.title,
 					description: values.description,
-					expiration_date: values.expiration_date,
 				},
 				{
 					headers: { "X-CSRFToken": csrfToken },
@@ -208,18 +206,6 @@ const DiscussionsPage: React.FC = () => {
 								]}
 							>
 								<Input.TextArea rows={4} />
-							</Form.Item>
-							<Form.Item
-								name="expiration_date"
-								label="Expiration Date"
-								rules={[
-									{
-										required: true,
-										message: "Please select an expiration date!",
-									},
-								]}
-							>
-								<Input type="date" />
 							</Form.Item>
 							<Form.Item>
 								<Space>
