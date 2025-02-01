@@ -11,7 +11,7 @@
     "rewrites": [
         {
             "source": "/api/whoami/",
-            "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/whoami/"
+            "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/users/whoami/"
         },
       {
         "source": "/api/:path*",
