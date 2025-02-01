@@ -34,7 +34,7 @@ const RecentQuestionnaires: React.FC = () => {
 			if (!shouldFetch) return;
 
 			try {
-				const response = await axios.get("/api/questionnaires/", {
+				const response = await axios.get("/api/questionnaires", {
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				});

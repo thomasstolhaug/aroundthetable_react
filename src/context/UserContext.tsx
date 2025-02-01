@@ -66,7 +66,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 		setLoadingUser(true); // Set loading before the request
 		try {
 			const res = await axios.post(
-				"/api/users/user_login/",
+				"/api/users/user_login",
 				{ email, password },
 				{
 					headers: { "X-CSRFToken": csrfToken },
@@ -99,7 +99,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 		setLoadingUser(true);
 		try {
 			await axios.post(
-				"/api/users/user_logout/",
+				"/api/users/user_logout",
 				{},
 				{
 					headers: { "X-CSRFToken": csrfToken },

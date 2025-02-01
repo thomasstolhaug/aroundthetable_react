@@ -37,7 +37,7 @@ const EmailVerificationPage: React.FC = () => {
 					uidb64,
 					token,
 				};
-				const response = await axios.post("/api/users/verify-email/", data, {
+				const response = await axios.post("/api/users/verify-email", data, {
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				});

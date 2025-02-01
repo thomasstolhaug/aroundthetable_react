@@ -17,7 +17,7 @@ const ResetPassword: React.FC = () => {
 			const data = {
 				email: values.email,
 			};
-			await axios.post("/api/users/request-password-mail/", data, {
+			await axios.post("/api/users/request-password-mail", data, {
 				headers: { "X-CSRFToken": csrfToken },
 				withCredentials: true,
 			});

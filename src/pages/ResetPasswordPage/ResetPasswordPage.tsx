@@ -40,14 +40,10 @@ const ResetPasswordPage: React.FC = () => {
 				confirm_password: values.confirm_password,
 			};
 
-			const res = await axios.post(
-				"/api/users/finalize-password-reset/",
-				data,
-				{
-					headers: { "X-CSRFToken": csrfToken },
-					withCredentials: true,
-				}
-			);
+			const res = await axios.post("/api/users/finalize-password-reset", data, {
+				headers: { "X-CSRFToken": csrfToken },
+				withCredentials: true,
+			});
 
 			message.success(res.data?.message || "Password reset successful!");
 			navigate("/login");
