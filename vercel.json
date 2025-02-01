@@ -10,12 +10,12 @@
     ],
     "rewrites": [
         {
-            "source": "/api/get-csrf-token/",
-            "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/get-csrf-token/"
+            "source": "/api/whoami/",
+            "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/whoami/"
         },
       {
         "source": "/api/:path*",
-        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*/"
+        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
       },
 
       {
