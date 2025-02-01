@@ -11,7 +11,7 @@
     "rewrites": [
         {
         "source": "/api/:path*",
-        "destination": "aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
+        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
         },
         {
         "source": "/:path*",
@@ -19,4 +19,3 @@
         }
     ]
 }
-    
