@@ -9,13 +9,20 @@
       }
     ],
     "rewrites": [
-        {
-          "source": "/api/:path*",
-          "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
-        },
-        {
-          "source": "/:path*",
-          "destination": "/index.html"
-        }
+
+      {
+        "source": "/test",
+        "destination": "https://www.google.com"
+      },
+    
+      {
+        "source": "/api/:path*",
+        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
+      },
+      {
+        "source": "/:path*",
+        "destination": "/index.html"
+      }
     ]
-}
+  }
+  
