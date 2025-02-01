@@ -74,7 +74,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 				}
 			);
 
-			const whoamiResponse = await axios.get("/api/users/whoami/", {
+			const whoamiResponse = await axios.get("/server/api/users/whoami/", {
 				withCredentials: true,
 			});
 
