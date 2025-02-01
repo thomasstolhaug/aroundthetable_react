@@ -10,11 +10,11 @@
     ],
     "rewrites": [
         {
-        "source": "/api/:path*",
+        "source": "/api/(.*)",
         "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
         },
         {
-        "source": "/:path*",
+        "source": "/(.*)",
         "destination": "/index.html"
         }
     ]
