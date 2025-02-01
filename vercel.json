@@ -9,10 +9,15 @@
       }
     ],
     "rewrites": [
+        {
+            "source": "/api/get-csrf-token/",
+            "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/get-csrf-token/"
+        },
       {
         "source": "/api/:path*",
-        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/get-csrf-token/"
+        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
       },
+
       {
         "source": "/:path*",
         "destination": "/index.html"
