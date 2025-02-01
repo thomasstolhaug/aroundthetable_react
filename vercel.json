@@ -1,11 +1,22 @@
 {
     "builds": [
-        { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+      {
+        "src": "package.json",
+        "use": "@vercel/static-build",
+        "config": {
+          "distDir": "dist"
+        }
+        }
     ],
     "rewrites": [
         {
-        "source": "/api/:path*", 
+        "source": "/api/:path*",
         "destination": "aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
+        },
+        {
+        "source": "/:path*",
+        "destination": "/index.html"
         }
     ]
 }
+    
