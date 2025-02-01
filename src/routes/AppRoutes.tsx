@@ -60,7 +60,6 @@ function AppRoutes() {
 					path="/verify-email/:uidb64/:token"
 					element={<EmailVerificationPage />}
 				/>
-
 				<Route path="*" element={<NotFoundPage />} />
 			</Route>
 		</Routes>
