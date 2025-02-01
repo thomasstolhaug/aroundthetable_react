@@ -39,7 +39,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
-				const res = await axios.get("/api/users/whoami/", {
+				const res = await axios.get("/api/users/whoami", {
 					withCredentials: true,
 				});
 				if (!res.data.email) {
@@ -74,7 +74,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 				}
 			);
 
-			const whoamiResponse = await axios.get("/server/api/users/whoami/", {
+			const whoamiResponse = await axios.get("/api/users/whoami", {
 				withCredentials: true,
 			});
 

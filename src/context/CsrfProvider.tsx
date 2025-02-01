@@ -34,7 +34,7 @@ export const CsrfProvider: React.FC<{ children: ReactNode }> = ({
 	const fetchCsrfCookie = async () => {
 		try {
 			// We expect the Django endpoint to return { csrfToken: 'abc123' }
-			const res = await axios.get("/api/get-csrf-token/");
+			const res = await axios.get("/api/get-csrf-token");
 			const token = res.data.csrf_token;
 			setCsrfToken(token || ""); // Store it in state
 			setTokenLoaded(true);
