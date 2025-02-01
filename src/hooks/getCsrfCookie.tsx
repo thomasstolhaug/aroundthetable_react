@@ -18,7 +18,7 @@ export function getCsrfToken(): UseCsrfResult {
 		const fetchCsrf = async () => {
 			try {
 				setLoading(true);
-				const response = await axios.get("/api/get-csrf-token", {
+				const response = await axios.get("/api/get-csrf-token/", {
 					withCredentials: true,
 				});
 
