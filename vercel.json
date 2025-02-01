@@ -15,7 +15,7 @@
         },
       {
         "source": "/api/:path*",
-        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
+        "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*/"
       },
 
       {
