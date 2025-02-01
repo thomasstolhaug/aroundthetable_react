@@ -14,10 +14,6 @@
           "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
         },
         {
-          "source": "/api/:path*",
-          "destination": "https://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/:path*"
-        },
-        {
           "source": "/:path*",
           "destination": "/index.html"
         }
