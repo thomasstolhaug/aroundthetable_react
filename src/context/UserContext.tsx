@@ -64,9 +64,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 	useEffect(() => {
 		if (user) {
 			// Dynamically figure out ws or wss based on the current protocol
-			const baseUrl = import.meta.env.VITE_WS_BASE_URL;
-			const socketUrl = `${baseUrl}/ws/pipeline_progress`;
-			const newSocket = new WebSocket(socketUrl);
+			// const baseUrl = import.meta.env.VITE_WS_BASE_URL;
+			// const socketUrl = `${baseUrl}/ws/pipeline_progress`;
+
+			const socketUrlProd =
+				"wss://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/ws/pipeline_progress";
+			const newSocket = new WebSocket(socketUrlProd);
 
 			newSocket.onopen = () => {
 				console.log("WebSocket connected");
