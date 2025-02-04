@@ -28,6 +28,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useUser } from "../../context/UserContext";
 
 dayjs.extend(relativeTime);
 
@@ -74,6 +75,7 @@ interface AnalysisResponse {
 
 const DiscussionDetailPage: React.FC = () => {
 	const { csrfToken } = useCsrf();
+	const { socket } = useUser();
 	const { id } = useParams();
 	const [loading, setLoading] = useState(true);
 	const [questionnaire, setQuestionnaire] = useState<
@@ -274,10 +276,20 @@ const DiscussionDetailPage: React.FC = () => {
 					withCredentials: true,
 				}
 			);
+			// Send a message to websocket
+			const groupId = `group_analyze_${id}`;
+
+			socket?.send(
+				JSON.stringify({
+					action: "subscribe",
+					groups: [groupId],
+				})
+			);
 
 			message.success(
 				response.data.message || "Analysis started successfully."
 			);
+
 			setAnalysisModalVisible(false);
 		} catch (error: any) {
 			console.error("Error starting analysis:", error);

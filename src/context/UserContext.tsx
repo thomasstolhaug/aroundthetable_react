@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useCsrf } from "./CsrfProvider";
-import { useEffect } from "react";
 
 interface User {
 	email: string;
@@ -10,32 +9,33 @@ interface User {
 	lastName: string;
 }
 
-// Define the UserContextProps interface
 interface UserContextProps {
 	user: User | null;
 	loadingUser: boolean;
 	login: (email: string, password: string) => Promise<void>;
 	logout: () => void;
+	socket: WebSocket | null;
 }
 
-// Create the UserContext
 const UserContext = createContext<UserContextProps>({
 	user: null,
 	loadingUser: true,
 	login: async () => {},
 	logout: () => {},
+	socket: null,
 });
 
-// Create the UserProvider component
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
 	const [user, setUser] = useState<User | null>(null);
 	const [loadingUser, setLoadingUser] = useState(true);
+	const [socket, setSocket] = useState<WebSocket | null>(null);
 
 	const navigate = useNavigate();
 	const { csrfToken, reloadCsrf } = useCsrf();
 
+	// 1) On mount, check if user is already authenticated
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
@@ -57,15 +57,58 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 				setLoadingUser(false);
 			}
 		};
-
 		checkAuth();
 	}, []);
 
-	// Simple login method
+	// 2) Open/close the WebSocket when `user` changes
+	useEffect(() => {
+		if (user) {
+			// Dynamically figure out ws or wss based on the current protocol
+			const baseUrl = import.meta.env.VITE_WS_BASE_URL;
+			const socketUrl = `${baseUrl}/ws/pipeline_progress`;
+			const newSocket = new WebSocket(socketUrl);
+
+			newSocket.onopen = () => {
+				console.log("WebSocket connected");
+				// Example: subscribe to a group if needed
+				// newSocket.send(JSON.stringify({ command: "subscribe", groups: ["some_group"] }));
+			};
+
+			newSocket.onmessage = (e) => {
+				console.log("WebSocket message:", e.data);
+				// Handle parsed messages if needed
+				// const data = JSON.parse(e.data);
+			};
+
+			newSocket.onerror = (error) => {
+				console.error("WebSocket error:", error);
+			};
+
+			newSocket.onclose = () => {
+				console.log("WebSocket closed");
+			};
+
+			setSocket(newSocket);
+
+			// Cleanup if user changes or component unmounts
+			return () => {
+				newSocket.close();
+				setSocket(null);
+			};
+		} else {
+			// If no user, close any existing WebSocket
+			if (socket) {
+				socket.close();
+			}
+			setSocket(null);
+		}
+	}, [user]);
+
+	// 3) Login logic
 	const login = async (email: string, password: string) => {
-		setLoadingUser(true); // Set loading before the request
+		setLoadingUser(true);
 		try {
-			const res = await axios.post(
+			await axios.post(
 				"/api/users/user_login",
 				{ email, password },
 				{
@@ -74,13 +117,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 				}
 			);
 
+			// Check current user again
 			const whoamiResponse = await axios.get("/api/users/whoami", {
 				withCredentials: true,
 			});
 
-			// Reload CSRF token before updating user state
+			// Reload CSRF
 			await reloadCsrf();
-			console.log("login response data:", res.data);
 
 			setUser({
 				email: whoamiResponse.data.email,
@@ -92,9 +135,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 		}
 	};
 
-	console.log(user);
-
-	// Simple logout method
+	// 4) Logout logic
 	const logout = async () => {
 		setLoadingUser(true);
 		try {
@@ -106,21 +147,29 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 					withCredentials: true,
 				}
 			);
-			navigate("/", { replace: true });
 			setUser(null);
+			navigate("/", { replace: true });
 		} finally {
 			setLoadingUser(false);
 		}
 	};
 
 	return (
-		<UserContext.Provider value={{ user, loadingUser, login, logout }}>
+		<UserContext.Provider
+			value={{
+				user,
+				loadingUser,
+				login,
+				logout,
+				socket,
+			}}
+		>
 			{children}
 		</UserContext.Provider>
 	);
 };
 
-// A custom hook to consume the UserContext easily
+// 5) Hook to consume the context
 export function useUser() {
 	return useContext(UserContext);
 }
