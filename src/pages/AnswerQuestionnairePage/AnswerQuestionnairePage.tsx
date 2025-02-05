@@ -39,7 +39,10 @@ const AnswerQuestionnairePage: React.FC = () => {
 				navigate("/access");
 				return;
 			}
-
+			if (!csrfToken) {
+				// Optionally, wait or show a loading state until the token is available
+				return;
+			}
 			try {
 				const response = await axios.post(
 					"/api/share/validate_access_code",
@@ -49,7 +52,6 @@ const AnswerQuestionnairePage: React.FC = () => {
 						withCredentials: true,
 					}
 				);
-
 				setQuestionnaire(response.data.questionnaire);
 			} catch (error: any) {
 				message.error(

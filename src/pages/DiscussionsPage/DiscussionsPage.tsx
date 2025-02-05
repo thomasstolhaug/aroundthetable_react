@@ -11,8 +11,7 @@ import {
 	Input,
 } from "antd";
 import axios from "axios";
-import { format } from "date-fns";
-import { RightOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import "./DiscussionsPage.css";
 import { useNavigate } from "react-router-dom";
 import { useCsrf } from "../../context/CsrfProvider";
@@ -117,13 +116,7 @@ const DiscussionsPage: React.FC = () => {
 					<div className="page-header">
 						<div className="page-header-content">
 							<div style={{ marginBottom: "16px" }}>
-								<Breadcrumb
-									items={[
-										{
-											title: "My discussions",
-										},
-									]}
-								/>
+								<Breadcrumb items={[{ title: "My discussions" }]} />
 								<Typography.Title level={1}>Discussions</Typography.Title>
 							</div>
 							<Button
@@ -139,47 +132,27 @@ const DiscussionsPage: React.FC = () => {
 					<List
 						dataSource={questionnaires}
 						renderItem={(item: Questionnaire) => (
-							<List.Item className="discussion-item">
-								<div className="discussion-content">
-									<div className="discussion-main">
-										<Typography.Title level={3} className="discussion-title">
-											{isMobile ? truncateTitle(item.name) : item.name}
-										</Typography.Title>
-										<Typography.Paragraph className="discussion-description">
-											{isMobile
-												? truncateDescription(item.description)
-												: item.description}
-										</Typography.Paragraph>
-									</div>
-									<div className="discussion-meta">
-										<Space
-											direction="vertical"
-											size="small"
-											style={{ width: "100%" }}
-										>
-											<div className="meta-dates">
-												<div className="meta-item">
-													<span className="meta-label">Created:</span>
-													<span>
-														{format(new Date(item.created_at), "MMM d, yyyy")}
-													</span>
-												</div>
-												<div className="meta-item">
-													<span className="meta-label">Updated:</span>
-													<span>
-														{format(new Date(item.updated_at), "MMM d, yyyy")}
-													</span>
-												</div>
-											</div>
-											<Button
-												type="default"
-												className="view-button"
-												onClick={() => navigate(`/discussions/${item.id}`)}
-											>
-												View Discussion <RightOutlined />
-											</Button>
-										</Space>
-									</div>
+							<List.Item
+								className="discussion-item"
+								onClick={() => navigate(`/discussions/${item.id}`)}
+								style={{ cursor: "pointer", minHeight: "180px" }}
+							>
+								<div
+									className="discussion-content"
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										justifyContent: "center",
+									}}
+								>
+									<Typography.Title level={3} className="discussion-title">
+										{isMobile ? truncateTitle(item.name) : item.name}
+									</Typography.Title>
+									<Typography.Paragraph className="discussion-description">
+										{isMobile
+											? truncateDescription(item.description)
+											: item.description}
+									</Typography.Paragraph>
 								</div>
 							</List.Item>
 						)}
@@ -205,19 +178,19 @@ const DiscussionsPage: React.FC = () => {
 									},
 								]}
 							>
-								<Input />
+								<Input placeholder="Lets talk about..." />
 							</Form.Item>
 							<Form.Item
 								name="description"
 								label="Description"
 								rules={[
 									{
-										required: true,
+										required: false,
 										message: "Please input the discussion description!",
 									},
 								]}
 							>
-								<Input.TextArea rows={4} />
+								<Input.TextArea rows={4} placeholder="The purpose of this" />
 							</Form.Item>
 							<Form.Item>
 								<Space>

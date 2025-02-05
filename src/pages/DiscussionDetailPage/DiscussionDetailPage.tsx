@@ -3,16 +3,16 @@ import {
 	Typography,
 	Breadcrumb,
 	Spin,
-	Tag,
 	Button,
 	List,
 	Modal,
 	Form,
 	Input,
 	Switch,
-	InputNumber,
 	DatePicker,
 	message,
+	Divider,
+	Progress, // <-- Import the Ant Design Progress component
 } from "antd";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -20,10 +20,8 @@ import "./DiscussionDetailPage.css";
 import { useCsrf } from "../../context/CsrfProvider";
 import {
 	PlusOutlined,
-	DeleteOutlined,
 	ShareAltOutlined,
-	EditOutlined,
-	QrcodeOutlined,
+	DeleteOutlined,
 } from "@ant-design/icons";
 import { QRCodeSVG } from "qrcode.react";
 import dayjs from "dayjs";
@@ -45,7 +43,6 @@ interface QuestionnaireResponse {
 interface Question {
 	id: string;
 	question: string;
-	answer_character_limit: number;
 	questionnaire: string;
 	required: boolean;
 }
@@ -71,6 +68,13 @@ interface ShareResponse {
 interface AnalysisResponse {
 	message: string;
 	questions_not_answered?: string[];
+}
+
+// Define the structure of each pipeline’s data from the new endpoint.
+interface PipelineInfo {
+	pipeline_id: string;
+	progress: number;
+	status: string;
 }
 
 const DiscussionDetailPage: React.FC = () => {
@@ -102,6 +106,20 @@ const DiscussionDetailPage: React.FC = () => {
 	const [startingAnalysis, setStartingAnalysis] = useState(false);
 	const [qrModalVisible, setQrModalVisible] = useState(false);
 
+	// New state for question deletion confirmation
+	const [questionDeleteModalVisible, setQuestionDeleteModalVisible] =
+		useState(false);
+	const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+
+	// New state: to track if analysis has started
+	const [analysisStarted, setAnalysisStarted] = useState(false);
+	// New state: to store pipeline details for each question.
+	// This maps a question_id to its pipeline info (id, progress, and status).
+	const [pipelineData, setPipelineData] = useState<
+		Record<string, PipelineInfo>
+	>({});
+
+	// -------------------- Fetch Questionnaire --------------------
 	useEffect(() => {
 		const fetchQuestionnaire = async () => {
 			try {
@@ -130,6 +148,7 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	}, [id, csrfToken]);
 
+	// -------------------- Fetch Questions --------------------
 	useEffect(() => {
 		const fetchQuestions = async () => {
 			try {
@@ -152,6 +171,7 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	}, [id, csrfToken]);
 
+	// -------------------- Fetch Share Info --------------------
 	const fetchShareInfo = async () => {
 		if (!id) return;
 		try {
@@ -173,6 +193,76 @@ const DiscussionDetailPage: React.FC = () => {
 		fetchShareInfo();
 	}, [id, csrfToken]);
 
+	// -------------------- Fetch Pipeline Details at Mount --------------------
+	useEffect(() => {
+		const fetchPipelineDetails = async () => {
+			if (!id) return;
+			try {
+				const response = await axios.post(
+					"/api/pipelines/get_pipeline_details",
+					{ questionnaire_id: id },
+					{
+						headers: { "X-CSRFToken": csrfToken },
+						withCredentials: true,
+					}
+				);
+				// Expected response: { pipelines: [{ pipeline_id, question_id, progress, status }, ...] }
+				const newData: Record<string, PipelineInfo> = {};
+				response.data.pipelines.forEach(
+					(pipeline: {
+						pipeline_id: string;
+						question_id: string;
+						progress: number;
+						status: string;
+					}) => {
+						newData[pipeline.question_id] = {
+							pipeline_id: pipeline.pipeline_id,
+							progress: pipeline.progress,
+							status: pipeline.status,
+						};
+					}
+				);
+				setPipelineData(newData);
+			} catch (error) {
+				console.error("Error fetching pipeline details:", error);
+			}
+		};
+
+		fetchPipelineDetails();
+	}, [id, csrfToken]);
+
+	// -------------------- WebSocket for Pipeline Progress Updates --------------------
+	useEffect(() => {
+		if (!socket || !analysisStarted) return;
+		const handleMessage = (event: MessageEvent) => {
+			try {
+				const data = JSON.parse(event.data);
+				// Expecting messages with at least: question_id and progress_stage.
+				// Optionally, they may include a "status" field.
+				if (data && data.question_id && data.progress_stage !== undefined) {
+					setPipelineData((prev) => ({
+						...prev,
+						[data.question_id]: {
+							// Preserve existing pipeline_id if available
+							pipeline_id: prev[data.question_id]?.pipeline_id || "",
+							progress: Number(data.progress_stage),
+							status:
+								data.status || prev[data.question_id]?.status || "running",
+						},
+					}));
+				}
+			} catch (error) {
+				console.error("Error parsing WebSocket message", error);
+			}
+		};
+
+		socket.addEventListener("message", handleMessage);
+		return () => {
+			socket.removeEventListener("message", handleMessage);
+		};
+	}, [socket, analysisStarted]);
+
+	// -------------------- Create Question --------------------
 	const handleCreateQuestion = async (values: any) => {
 		try {
 			await axios.post(
@@ -180,7 +270,6 @@ const DiscussionDetailPage: React.FC = () => {
 				{
 					questionnaire_id: id,
 					text: values.question,
-					answer_character_limit: values.answer_character_limit,
 					required: values.required || false,
 				},
 				{
@@ -191,13 +280,8 @@ const DiscussionDetailPage: React.FC = () => {
 
 			// Refresh questions list
 			const response = await axios.post<QuestionResponse>(
-				`/api/questionnaires/get_questionnaire_questions`,
-				{
-					questionnaire_id: id,
-					text: values.question,
-					answer_character_limit: values.answer_character_limit,
-					required: values.required || false,
-				},
+				"/api/questionnaires/get_questionnaire_questions",
+				{ questionnaire_id: id },
 				{
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
@@ -205,7 +289,6 @@ const DiscussionDetailPage: React.FC = () => {
 			);
 
 			setQuestions(response.data.questions);
-
 			setIsModalVisible(false);
 			form.resetFields();
 		} catch (error) {
@@ -213,20 +296,17 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	// -------------------- Delete Question --------------------
 	const handleDeleteQuestion = async (questionId: string) => {
 		try {
 			await axios.post(
 				"/api/questionnaires/delete_question",
-				{
-					question_id: questionId,
-				},
+				{ question_id: questionId },
 				{
 					headers: { "X-CSRFToken": csrfToken },
 					withCredentials: true,
 				}
 			);
-
-			// Remove the deleted question from state
 			const updatedQuestions = questions.filter((q) => q.id !== questionId);
 			setQuestions(updatedQuestions);
 		} catch (error) {
@@ -234,6 +314,7 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	// -------------------- Analyze Questionnaire --------------------
 	const handleAnalyzeQuestionnaire = async () => {
 		if (!id) return;
 		setAnalyzing(true);
@@ -246,8 +327,6 @@ const DiscussionDetailPage: React.FC = () => {
 					withCredentials: true,
 				}
 			);
-
-			// If server returned success data, proceed
 			setAnalysisResponse(response.data);
 			setAnalysisModalVisible(true);
 		} catch (error: any) {
@@ -265,9 +344,7 @@ const DiscussionDetailPage: React.FC = () => {
 	const handleStartAnalysis = async () => {
 		if (!id) return;
 		setStartingAnalysis(true);
-
 		try {
-			// Make the POST request to analyze_questionnaire
 			const response = await axios.post(
 				"/api/pipelines/analyze_questionnaire",
 				{ questionnaire_id: id },
@@ -276,24 +353,22 @@ const DiscussionDetailPage: React.FC = () => {
 					withCredentials: true,
 				}
 			);
-			// Send a message to websocket
+			// Subscribe to the progress updates for this questionnaire via WebSocket
 			const groupId = `group_analyze_${id}`;
-
 			socket?.send(
 				JSON.stringify({
 					action: "subscribe",
 					groups: [groupId],
 				})
 			);
-
 			message.success(
 				response.data.message || "Analysis started successfully."
 			);
-
 			setAnalysisModalVisible(false);
+			// Mark that the analysis has started so we can show progress bars
+			setAnalysisStarted(true);
 		} catch (error: any) {
 			console.error("Error starting analysis:", error);
-
 			if (axios.isAxiosError(error) && error.response?.data?.error) {
 				message.error(error.response.data.error);
 			} else {
@@ -304,6 +379,7 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	// -------------------- Delete Questionnaire --------------------
 	const handleDeleteQuestionnaire = async () => {
 		try {
 			await axios.post(
@@ -320,6 +396,7 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	// -------------------- Sharing Functions --------------------
 	const handleDisableSharing = async () => {
 		if (!id) return;
 		try {
@@ -337,25 +414,22 @@ const DiscussionDetailPage: React.FC = () => {
 		}
 	};
 
+	// Updated: expiration_date is now optional
 	const handleShareQuestionnaire = async (values: {
-		expiration_date: Date;
+		expiration_date?: Date;
 	}) => {
 		if (!id) return;
 		setSharing(true);
-
 		try {
-			const response = await axios.post(
-				"/api/share/enable_sharing",
-				{
-					questionnaire_id: id,
-					expiration_date: values.expiration_date.toISOString(),
-				},
-				{
-					headers: { "X-CSRFToken": csrfToken },
-					withCredentials: true,
-				}
-			);
-
+			// Only add expiration_date if it exists
+			const data: any = { questionnaire_id: id };
+			if (values.expiration_date) {
+				data.expiration_date = values.expiration_date.toISOString();
+			}
+			const response = await axios.post("/api/share/enable_sharing", data, {
+				headers: { "X-CSRFToken": csrfToken },
+				withCredentials: true,
+			});
 			if (response.data.cannot_share) {
 				message.error(response.data.cannot_share);
 			} else {
@@ -364,7 +438,6 @@ const DiscussionDetailPage: React.FC = () => {
 				}
 				await fetchShareInfo();
 			}
-
 			setShareModalVisible(false);
 		} catch (error) {
 			console.error("Error sharing questionnaire:", error);
@@ -404,6 +477,7 @@ const DiscussionDetailPage: React.FC = () => {
 		return current && current < dayjs().startOf("day");
 	};
 
+	// -------------------- Render --------------------
 	if (loading) {
 		return (
 			<div className="loading-container">
@@ -425,12 +499,8 @@ const DiscussionDetailPage: React.FC = () => {
 			<div className="page-header">
 				<Breadcrumb
 					items={[
-						{
-							title: <Link to="/discussions">My discussions</Link>,
-						},
-						{
-							title: questionnaire.name,
-						},
+						{ title: <Link to="/discussions">My discussions</Link> },
+						{ title: questionnaire.name },
 					]}
 				/>
 				<div className="page-header-top">
@@ -444,7 +514,10 @@ const DiscussionDetailPage: React.FC = () => {
 			<div className="discussion-layout">
 				{/* Main content */}
 				<div className="discussion-container">
-					<div className="discussion-card" style={{ height: "100%" }}>
+					<div
+						className="discussion-card"
+						style={{ height: "100%", minHeight: "40px" }}
+					>
 						<Typography.Title level={4} style={{ marginBottom: "16px" }}>
 							Description
 						</Typography.Title>
@@ -480,95 +553,54 @@ const DiscussionDetailPage: React.FC = () => {
 							>
 								Analyze Discussion
 							</Button>
-
-							<Button danger onClick={() => setDeleteModalVisible(true)}>
-								Delete Discussion
-							</Button>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				{/* Sidebar/Details */}
-				<div className="discussion-container">
-					{activeShare && (
-						<div className="discussion-card" style={{ height: "100%" }}>
-							<Typography.Title level={4} className="share-details-title">
-								Share Details
-							</Typography.Title>
-
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									gap: "8px",
-									alignItems: "center",
-								}}
-							>
-								{/* Access Code */}
-								<div
-									style={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										width: "100%",
-									}}
-								>
-									<Typography.Text type="secondary">
-										Access Code:
-									</Typography.Text>
-									<Typography.Text copyable>
-										{activeShare.access_code}
-									</Typography.Text>
-								</div>
-
-								{/* QR Code (button) */}
-								<div
-									style={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										width: "100%",
-									}}
-								>
-									<Typography.Text type="secondary">
-										QR Code (click):
-									</Typography.Text>
-									<Button
-										type="text"
-										icon={<QrcodeOutlined />}
-										onClick={() => setQrModalVisible(true)}
-									/>
-								</div>
-
-								{/* Expiration Date with Edit */}
-								<div
-									style={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										width: "100%",
-									}}
-								>
-									<Typography.Text type="secondary">Expires:</Typography.Text>
-									<div style={{ display: "flex", alignItems: "center" }}>
-										<Typography.Text>
-											{dayjs(activeShare.expiration_date).format("MMM D, YYYY")}
-										</Typography.Text>
-										<Button
-											type="text"
-											icon={<EditOutlined />}
-											onClick={(e) => {
-												e.stopPropagation();
-												setEditExpirationModalVisible(true);
-											}}
-										/>
-									</div>
-								</div>
+			{/* If discussion is shared, display the share details box below the discussion */}
+			{activeShare && (
+				<div className="share-details-container" style={{ marginTop: "24px" }}>
+					<div
+						className="discussion-card share-box"
+						style={{
+							minHeight: "40px",
+							display: "flex",
+							alignItems: "flex-start",
+							justifyContent: "space-between",
+							flexWrap: "wrap",
+						}}
+					>
+						<div
+							className="share-details-left"
+							style={{ flex: "1", minWidth: "250px" }}
+						>
+							<Typography.Title level={4}>Share Details</Typography.Title>
+							<div style={{ marginBottom: "16px" }}>
+								<Typography.Text strong>Access Code: </Typography.Text>
+								<Typography.Text copyable>
+									{activeShare.access_code}
+								</Typography.Text>
+							</div>
+							<div>
+								<Typography.Text strong>Share Link: </Typography.Text>
+								<Typography.Text copyable>
+									{`${window.location.origin}/answer?code=${activeShare.access_code}`}
+								</Typography.Text>
 							</div>
 						</div>
-					)}
+						<div className="share-details-right" style={{ marginLeft: "16px" }}>
+							<Typography.Text strong>QR Code:</Typography.Text>
+							<div style={{ marginTop: "8px" }}>
+								<QRCodeSVG
+									value={`${window.location.origin}/answer?code=${activeShare.access_code}`}
+									size={150}
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Questions Section */}
 			<div className="questions-section">
@@ -591,37 +623,77 @@ const DiscussionDetailPage: React.FC = () => {
 					itemLayout="vertical"
 					dataSource={questions}
 					style={{ marginTop: "16px" }}
-					renderItem={(question) => (
+					renderItem={(question, index) => (
 						<List.Item>
-							<div
-								className="question-item"
-								onClick={() =>
-									navigate(`/discussions/${id}/questions/${question.id}`)
-								}
-							>
-								<div className="question-content">
-									<div className="question-header">
-										<Typography.Text strong>
-											{question.question}
-										</Typography.Text>
-										<Button
-											type="text"
-											danger
-											icon={<DeleteOutlined />}
-											onClick={(e) => {
-												e.stopPropagation();
-												handleDeleteQuestion(question.id);
+							{/* Wrap the card and the progress bar together */}
+							<div>
+								<div
+									className="question-card"
+									style={{ position: "relative", minHeight: "40px" }}
+									onClick={() =>
+										navigate(`/discussions/${id}/questions/${question.id}`)
+									}
+								>
+									{/* Delete Icon positioned at the top right */}
+									<Button
+										type="text"
+										onClick={(e) => {
+											e.stopPropagation();
+											setQuestionToDelete(question.id);
+											setQuestionDeleteModalVisible(true);
+										}}
+										icon={
+											<DeleteOutlined
+												style={{ color: "red", fontSize: "16px" }}
+											/>
+										}
+										style={{ position: "absolute", top: "8px", right: "8px" }}
+									/>
+									<div
+										className="question-card-header"
+										style={{ display: "flex", alignItems: "center" }}
+									>
+										<div
+											className="question-number"
+											style={{
+												fontSize: "24px",
+												fontWeight: "bold",
+												marginRight: "8px",
+											}}
+										>
+											{index + 1}.
+										</div>
+										<div className="question-title">
+											<Typography.Text strong>
+												{question.question}
+												{question.required && (
+													<span style={{ color: "red" }}> *</span>
+												)}
+											</Typography.Text>
+										</div>
+									</div>
+								</div>
+								{/* Render the progress bar below the question card if analysis has started or pipeline data is available */}
+								{(analysisStarted ||
+									pipelineData[question.id] !== undefined) && (
+									<div onClick={(e) => e.stopPropagation()}>
+										<Progress
+											percent={pipelineData[question.id]?.progress || 0}
+											showInfo
+											status={
+												pipelineData[question.id]?.status === "failed"
+													? "exception"
+													: pipelineData[question.id]?.status === "completed"
+													? "success"
+													: "active"
+											}
+											style={{
+												width: "100%",
+												marginBottom: "40px",
 											}}
 										/>
 									</div>
-
-									<div className="question-meta">
-										{question.required && <Tag color="red">Required</Tag>}
-										<Typography.Text type="secondary">
-											Character limit: {question.answer_character_limit}
-										</Typography.Text>
-									</div>
-								</div>
+								)}
 							</div>
 						</List.Item>
 					)}
@@ -637,23 +709,15 @@ const DiscussionDetailPage: React.FC = () => {
 					<Form form={form} onFinish={handleCreateQuestion} layout="vertical">
 						<Form.Item
 							name="question"
-							label="Question Text"
+							label="Question"
 							rules={[
 								{ required: true, message: "Please enter the question text" },
 							]}
 						>
-							<Input.TextArea />
+							<Input.TextArea placeholder="How can we improve our service?" />
 						</Form.Item>
 
-						<Form.Item
-							name="answer_character_limit"
-							label="Answer Character Limit"
-							rules={[
-								{ required: true, message: "Please enter a character limit" },
-							]}
-						>
-							<InputNumber min={1} />
-						</Form.Item>
+						{/* Removed the Answer Character Limit field */}
 
 						<Form.Item name="required" valuePropName="checked">
 							<Switch checkedChildren="Required" unCheckedChildren="Optional" />
@@ -668,6 +732,16 @@ const DiscussionDetailPage: React.FC = () => {
 				</Modal>
 			</div>
 
+			{/* Divider above the tucked-away Delete Discussion button */}
+			<Divider />
+
+			{/* Tucked-away Delete Discussion Button at the bottom */}
+			<div style={{ textAlign: "center", marginTop: "100px" }}>
+				<Button type="link" danger onClick={() => setDeleteModalVisible(true)}>
+					Delete Discussion
+				</Button>
+			</div>
+
 			{/* Share Modal */}
 			<Modal
 				title="Share Discussion"
@@ -676,16 +750,7 @@ const DiscussionDetailPage: React.FC = () => {
 				footer={null}
 			>
 				<Form onFinish={handleShareQuestionnaire} layout="vertical">
-					<Form.Item
-						name="expiration_date"
-						label="Expiration Date"
-						rules={[
-							{
-								required: true,
-								message: "Please select an expiration date",
-							},
-						]}
-					>
+					<Form.Item name="expiration_date" label="Expiration Date (Optional)">
 						<DatePicker
 							style={{ width: "100%" }}
 							disabledDate={disablePastDates}
@@ -726,10 +791,7 @@ const DiscussionDetailPage: React.FC = () => {
 						name="expiration_date"
 						label="New Expiration Date"
 						rules={[
-							{
-								required: true,
-								message: "Please select an expiration date",
-							},
+							{ required: true, message: "Please select an expiration date" },
 						]}
 					>
 						<DatePicker
@@ -771,7 +833,7 @@ const DiscussionDetailPage: React.FC = () => {
 				<div style={{ marginBottom: 16 }}>
 					<Typography.Text>
 						Once the analysis is started, the discussion is marked as closed and
-						will not collect answers.{" "}
+						will not collect answers.
 					</Typography.Text>
 					<br />
 					<br />
@@ -810,6 +872,30 @@ const DiscussionDetailPage: React.FC = () => {
 						size={200}
 					/>
 				</div>
+			</Modal>
+
+			{/* Question Delete Confirmation Modal */}
+			<Modal
+				title="Delete Question"
+				open={questionDeleteModalVisible}
+				onOk={() => {
+					if (questionToDelete) {
+						handleDeleteQuestion(questionToDelete);
+					}
+					setQuestionDeleteModalVisible(false);
+					setQuestionToDelete(null);
+				}}
+				onCancel={() => {
+					setQuestionDeleteModalVisible(false);
+					setQuestionToDelete(null);
+				}}
+				okText="Delete"
+				okButtonProps={{ danger: true }}
+			>
+				<p>
+					Are you sure you want to delete this question? This action cannot be
+					undone.
+				</p>
 			</Modal>
 		</>
 	);

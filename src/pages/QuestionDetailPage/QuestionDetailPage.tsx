@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
 	Typography,
 	Breadcrumb,
@@ -14,13 +14,13 @@ import {
 	Modal,
 	Form,
 	Input,
+	Divider,
 } from "antd";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { useCsrf } from "../../context/CsrfProvider";
 import "./QuestionDetailPage.css";
 import type { TableProps } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
 
 interface Question {
 	id: string;
@@ -81,6 +81,8 @@ const QuestionDetailPage: React.FC = () => {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [form] = Form.useForm();
 	const [submitting, setSubmitting] = useState(false);
+	// New state to control the number of answers shown
+	const [showAllAnswers, setShowAllAnswers] = useState(false);
 
 	useEffect(() => {
 		const fetchQuestion = async () => {
@@ -351,6 +353,9 @@ const QuestionDetailPage: React.FC = () => {
 		return text.length > limit ? text.substring(0, limit - 3) + "..." : text;
 	};
 
+	// Only show the first 5 answers by default unless "See More" is clicked
+	const displayedAnswers = showAllAnswers ? answers : answers.slice(0, 5);
+
 	if (loading)
 		return (
 			<div className="page-container">
@@ -389,70 +394,11 @@ const QuestionDetailPage: React.FC = () => {
 				</Typography.Title>
 			</div>
 
-			<Card className="summary-section section-card">
-				<Typography.Title level={4}>Summary</Typography.Title>
-				{loadingSummary ? (
-					<Spin />
-				) : summary ? (
-					<Typography.Paragraph>{summary}</Typography.Paragraph>
-				) : (
-					<Typography.Text type="secondary">
-						No summary available
-					</Typography.Text>
-				)}
-			</Card>
-
-			<Card className="categories-section section-card">
-				<Typography.Title level={4}>Categories & Components</Typography.Title>
-				<Table
-					columns={categoryColumns}
-					dataSource={getCategoriesWithComponents()}
-					rowKey="key"
-					loading={loadingComponents}
-					expandable={{
-						expandedRowRender: (record) => (
-							<List>
-								<List.Item>
-									<Collapse style={{ width: "100%" }} defaultActiveKey={[]}>
-										<Collapse.Panel header="Summary" key="1">
-											<Typography.Paragraph>
-												{record.summary}
-											</Typography.Paragraph>
-										</Collapse.Panel>
-										<Collapse.Panel
-											header={`Talking Points (${record.count})`}
-											key="2"
-										>
-											<List
-												dataSource={record.components}
-												renderItem={(component: Component) => (
-													<List.Item>
-														<Typography.Text>
-															{component.text}
-															{component.improved_text && (
-																<>
-																	<br />
-																	<Typography.Text type="secondary">
-																		Improved: {component.improved_text}
-																	</Typography.Text>
-																</>
-															)}
-														</Typography.Text>
-													</List.Item>
-												)}
-											/>
-										</Collapse.Panel>
-									</Collapse>
-								</List.Item>
-							</List>
-						),
-					}}
-					pagination={false}
-				/>
-			</Card>
-
+			{/* Answers Section moved to the top */}
 			<Card className="answers-section section-card">
-				<Typography.Title level={4}>Answers</Typography.Title>
+				<Typography.Title level={4}>
+					Answers <Tag>{answers.length}</Tag>
+				</Typography.Title>
 				<Button
 					type="primary"
 					icon={<PlusOutlined />}
@@ -463,7 +409,7 @@ const QuestionDetailPage: React.FC = () => {
 				</Button>
 				<Table
 					columns={columns}
-					dataSource={answers}
+					dataSource={displayedAnswers}
 					rowKey="id"
 					loading={loadingAnswers}
 					pagination={{
@@ -472,6 +418,13 @@ const QuestionDetailPage: React.FC = () => {
 					}}
 					scroll={{ x: true }}
 				/>
+				{!showAllAnswers && answers.length > 5 && (
+					<div style={{ textAlign: "center", marginTop: "16px" }}>
+						<Button type="link" onClick={() => setShowAllAnswers(true)}>
+							See More
+						</Button>
+					</div>
+				)}
 				<Modal
 					title="Add Answer"
 					open={isModalVisible}
@@ -508,6 +461,62 @@ const QuestionDetailPage: React.FC = () => {
 						</Form.Item>
 					</Form>
 				</Modal>
+			</Card>
+
+			<Card className="summary-section section-card">
+				<Typography.Title level={4}>Summary</Typography.Title>
+				{loadingSummary ? (
+					<Spin />
+				) : summary ? (
+					<Typography.Paragraph>{summary}</Typography.Paragraph>
+				) : (
+					<Typography.Text type="secondary">
+						No summary available
+					</Typography.Text>
+				)}
+			</Card>
+
+			<Card
+				className="categories-section section-card"
+				style={{ marginBottom: "200px" }}
+			>
+				<Typography.Title level={4}>Categories & insights</Typography.Title>
+				<Table
+					columns={categoryColumns}
+					dataSource={getCategoriesWithComponents()}
+					rowKey="key"
+					loading={loadingComponents}
+					expandable={{
+						expandedRowRender: (record) => (
+							<List>
+								<List.Item>
+									<Collapse style={{ width: "100%" }} defaultActiveKey={[]}>
+										<Collapse.Panel header="Summary" key="1">
+											<Typography.Paragraph>
+												{record.summary}
+											</Typography.Paragraph>
+										</Collapse.Panel>
+										<Collapse.Panel
+											header={`Talking Points (${record.count})`}
+											key="2"
+										>
+											<List
+												dataSource={record.components}
+												renderItem={(component: Component) => (
+													<div key={component.component_id}>
+														<Typography.Text>{component.text}</Typography.Text>
+														<Divider style={{ margin: "8px 0" }} />
+													</div>
+												)}
+											/>
+										</Collapse.Panel>
+									</Collapse>
+								</List.Item>
+							</List>
+						),
+					}}
+					pagination={false}
+				/>
 			</Card>
 		</div>
 	);

@@ -78,10 +78,10 @@
   }
   
   .questions-list {
-	background: #fafafa;
-	padding: 16px;
-	border-radius: 6px;
-  }
+    padding: 16px 0; /* Keep vertical padding if needed, remove left/right padding */
+    border-radius: 6px;
+}
+
   
   .question-item {
 	padding: 16px;
@@ -196,5 +196,79 @@
     .share-details-title {
       text-align: left;
     }
+  }
+  
+/* New styles for the question cards matching .discussion-item */
+.question-card {
+  padding: 16px 20px !important;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 12px !important;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.question-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+  
+  .question-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .question-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .question-number {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #3f65f3; /* optional: add color to the number */
+  }
+  
+  .question-title {
+    flex: 1;
+    margin-right: 8px;
+  }
+  
+  /* Optional: adjust footer styling */
+  .question-card-footer {
+    text-align: right;
+    margin-top: 8px;
+  }
+  
+  /* Discussion Item Styles */
+  .page-container {
+    padding: 0;
+    margin: 0;
+  }
+  
+  .ant-list-item {
+    padding: 0 !important;
+  }
+  
+  .discussion-item {
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 8px 0;
+    padding: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .discussion-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .discussion-content {
+    width: 100%;
   }
   
