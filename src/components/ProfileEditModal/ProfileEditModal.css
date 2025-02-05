@@ -3,13 +3,16 @@
   padding: 10px 0;
 }
 
-.form-group{
-    margin-bottom: 0px;
+/* Give each form group some bottom margin for spacing */
+.form-group {
+  margin-bottom: 16px;
 }
 
+/* Optionally add a small bottom margin to labels */
 .form-group label {
   display: block;
   font-weight: 500;
+  margin-bottom: 4px;
 }
 
 .form-group input {
@@ -19,10 +22,12 @@
   border-radius: 4px;
 }
 
+/* Removed the negative margin from here and added a small positive margin */
 .email-container {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 4px;
 }
 
 .verification-badge {
@@ -41,8 +46,9 @@
   color: white;
 }
 
+/* Increase top margin for the password section for a better separation */
 .password-section {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .toggle-password-button,
@@ -77,4 +83,4 @@
 .email-display {
   padding: 8px 0;
   color: #666;
-} 
+}

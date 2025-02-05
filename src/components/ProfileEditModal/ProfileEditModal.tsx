@@ -246,6 +246,15 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 						type="button"
 						className="toggle-password-button"
 						onClick={() => setShowPasswordFields(!showPasswordFields)}
+						style={{
+							background: showPasswordFields ? "#ff7875" : "#1890ff",
+							color: "white",
+							border: "none",
+							padding: "6px 12px",
+							borderRadius: "4px",
+							cursor: "pointer",
+							transition: "background 0.3s",
+						}}
 					>
 						{showPasswordFields ? "Hide Password Fields" : "Change Password"}
 					</button>
