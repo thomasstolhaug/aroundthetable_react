@@ -67,9 +67,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 			// const baseUrl = import.meta.env.VITE_WS_BASE_URL;
 			// const socketUrl = `${baseUrl}/ws/pipeline_progress`;
 
-			//const socketUrlProd =
-			//	"wss://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/ws/pipeline_progress";
-			const socketUrlProd = "ws://127.0.0.1:8000/api/ws/pipeline_progress";
+			const socketUrlProd =
+				"wss://aroundthewebapp-hydncfeeemfvcqga.norwayeast-01.azurewebsites.net/api/ws/pipeline_progress";
+			//const socketUrlProd = "ws://127.0.0.1:8000/api/ws/pipeline_progress";
 
 			const newSocket = new WebSocket(socketUrlProd);
 
