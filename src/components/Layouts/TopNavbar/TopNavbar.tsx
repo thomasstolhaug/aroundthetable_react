@@ -58,6 +58,10 @@ const MainNavbar: React.FC = () => {
 							<Typography.Text strong>Home</Typography.Text>
 						</Link>
 
+						<Link to="/about-us" className="button-no-underline">
+							<Typography.Text strong>About Us</Typography.Text>
+						</Link>
+
 						<div className="divider" />
 
 						{user?.email ? (

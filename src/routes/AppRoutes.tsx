@@ -21,7 +21,7 @@ import DashboardLayout from "../components/Layouts/DashboardLayout/DashboardLayo
 // Routes
 import UserAuthProtectedRoute from "./UserAuthProtectedRoute";
 import PublicOnlyRoute from "./PublicOnlyRoute";
-
+import AboutUsPage from "../pages/AboutUsPage/AboutUsPage";
 function AppRoutes() {
 	return (
 		<Routes>
@@ -60,6 +60,7 @@ function AppRoutes() {
 					path="/verify-email/:uidb64/:token"
 					element={<EmailVerificationPage />}
 				/>
+				<Route path="/about-us" element={<AboutUsPage />} />
 				<Route path="*" element={<NotFoundPage />} />
 			</Route>
 		</Routes>
