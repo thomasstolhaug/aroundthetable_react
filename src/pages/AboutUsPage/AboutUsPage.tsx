@@ -33,7 +33,7 @@ const AboutUsPage: React.FC = () => {
 					<Paragraph className="section-paragraph">
 						The startup Around the Table (aroundthetable.io) is owned and
 						operated by norwegian company Kildekoden AS, located at
-						Fredensborgveien 13, 0177 Oslo, Norway.
+						Fredensborgveien 13C, 0177 Oslo, Norway.
 					</Paragraph>
 
 					<Paragraph className="section-paragraph">
